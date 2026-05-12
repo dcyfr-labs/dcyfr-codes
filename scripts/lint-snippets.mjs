@@ -15,10 +15,21 @@
  */
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+
+// Allocate a unique tmpdir for this lint run. Using fs.mkdtempSync under
+// the OS temp root gives a path no other process can predict, so the
+// per-snippet write/read/unlink cycle below is free of symlink-redirect
+// or race conditions. Cleaned up on process exit.
+// Closes CodeQL js/insecure-temporary-file (lint-snippets.mjs:100, :117).
+const LINT_TMP_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'dcyfr-codes-snip-lint-'));
+process.on('exit', () => {
+  try { fs.rmSync(LINT_TMP_DIR, { recursive: true, force: true }); } catch { /* ignore */ }
+});
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataPath = path.join(__dirname, '../data/snippets.json');
@@ -96,7 +107,7 @@ for (const s of snippets) {
       if (s.language === 'typescript' || s.language === 'javascript') {
         // Write to temp file; run tsc with --noResolve --skipLibCheck to check syntax only.
         // We only surface TS1xxx errors (syntax errors), ignoring TS2xxx (type/module resolution).
-        const tmpFile = `/tmp/snip-lint-${id}.ts`;
+        const tmpFile = path.join(LINT_TMP_DIR, `snip-${id}.ts`);
         fs.writeFileSync(tmpFile, s.code);
         try {
           const output = execSync(
@@ -113,10 +124,13 @@ for (const s of snippets) {
       } else if (s.language === 'json') {
         JSON.parse(s.code);
       } else if (s.language === 'bash') {
-        const tmpFile = `/tmp/snip-lint-${id}.sh`;
+        const tmpFile = path.join(LINT_TMP_DIR, `snip-${id}.sh`);
         fs.writeFileSync(tmpFile, s.code);
-        execSync(`bash -n "${tmpFile}"`, { stdio: 'pipe' });
-        fs.unlinkSync(tmpFile);
+        try {
+          execSync(`bash -n "${tmpFile}"`, { stdio: 'pipe' });
+        } finally {
+          fs.existsSync(tmpFile) && fs.unlinkSync(tmpFile);
+        }
       }
       // yaml/markdown/python: not validated syntactically (no available parser)
     } catch (e) {
