@@ -7,10 +7,16 @@
     "category": "Delegation",
     "difficulty": "beginner",
     "language": "typescript",
-    "tags": ["delegation", "agents", "typed-io"],
+    "tags": [
+      "delegation",
+      "agents",
+      "typed-io"
+    ],
     "code": "import { delegate } from '@dcyfr/ai';\n\ninterface SummarizeInput {\n  text: string;\n  maxWords: number;\n}\n\ninterface SummarizeOutput {\n  summary: string;\n  wordCount: number;\n}\n\nconst result = await delegate<SummarizeInput, SummarizeOutput>({\n  agent: 'summarizer',\n  input: { text: 'Your long article here...', maxWords: 100 },\n});\n\nconsole.log(result.summary);",
     "explanation": "Use `delegate` to hand off work to a named subagent. The generics enforce type safety on both the input and output, making delegation contracts explicit and refactor-safe.",
-    "relatedSnippets": ["agent-approval-webhook"],
+    "relatedSnippets": [
+      "agent-approval-webhook"
+    ],
     "sourceFile": ".claude/skills/delegation-framework/index.md",
     "dcyfrAiVersion": "2026.1.0",
     "deprecated": false
@@ -23,10 +29,17 @@
     "category": "Agent Patterns",
     "difficulty": "intermediate",
     "language": "typescript",
-    "tags": ["webhook", "inngest", "hmac", "security"],
+    "tags": [
+      "webhook",
+      "inngest",
+      "hmac",
+      "security"
+    ],
     "code": "import { createHmac, timingSafeEqual } from 'node:crypto';\n\nexport function verifyWebhookSignature(\n  payload: string,\n  signature: string,\n  secret: string,\n): boolean {\n  const expected = createHmac('sha256', secret)\n    .update(payload)\n    .digest('hex');\n  const sig = signature.startsWith('sha256=') ? signature.slice(7) : signature;\n  return timingSafeEqual(Buffer.from(expected), Buffer.from(sig));\n}",
     "explanation": "Always verify webhook signatures before processing. `timingSafeEqual` prevents timing attacks that could allow an attacker to brute-force the secret by measuring response times.",
-    "relatedSnippets": ["basic-delegation-contract"],
+    "relatedSnippets": [
+      "basic-delegation-contract"
+    ],
     "dcyfrAiVersion": "2026.1.0",
     "deprecated": false
   },
@@ -38,7 +51,12 @@
     "category": "Context Engineering",
     "difficulty": "intermediate",
     "language": "typescript",
-    "tags": ["context", "tokens", "budget", "truncation"],
+    "tags": [
+      "context",
+      "tokens",
+      "budget",
+      "truncation"
+    ],
     "code": "const CHARS_PER_TOKEN = 4; // rough approximation\n\nexport function guardContextBudget(\n  items: string[],\n  maxTokens: number,\n  reserveTokens = 2048,\n): string[] {\n  const limit = (maxTokens - reserveTokens) * CHARS_PER_TOKEN;\n  let total = 0;\n  const result: string[] = [];\n  for (const item of items) {\n    if (total + item.length > limit) break;\n    result.push(item);\n    total += item.length;\n  }\n  return result;\n}",
     "explanation": "Reserve tokens for the model's response before filling context. `reserveTokens` defaults to 2048 — adjust based on expected output length. Items are included in order until the budget is exhausted.",
     "relatedSnippets": [],
@@ -53,7 +71,12 @@
     "category": "Infrastructure",
     "difficulty": "beginner",
     "language": "bash",
-    "tags": ["mosh", "tailscale", "mobile", "connectivity"],
+    "tags": [
+      "mosh",
+      "tailscale",
+      "mobile",
+      "connectivity"
+    ],
     "code": "#!/usr/bin/env bash\n# Connect to remote workbench via Mosh over Tailscale\n# Usage: ./mosh-connect.sh [tailscale-hostname]\n\nHOST=\"${1:-workbench}\"\nMOSH_SERVER=\"$(which mosh-server 2>/dev/null || echo '/usr/local/bin/mosh-server')\"\n\nmosh \\\n  --server=\"$MOSH_SERVER\" \\\n  --port=60001 \\\n  --predict=adaptive \\\n  \"$HOST\" \\\n  -- tmux new-session -A -s main",
     "explanation": "Use `--port` to pin Mosh to a single UDP port (60001) so only one firewall rule is needed. `tmux new-session -A -s main` attaches to an existing session if one exists, creating a new one otherwise — perfect for resume-on-reconnect workflows.",
     "relatedSnippets": [],
