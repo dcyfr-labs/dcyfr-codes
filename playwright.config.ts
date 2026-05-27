@@ -13,6 +13,16 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL ?? 'https://dcyfr.codes',
     trace: 'on-first-retry',
+    // Vercel Protection Bypass for Automation. Without these headers, Playwright
+    // hits the Vercel SSO login wall on protected preview deploys instead of the
+    // site. Header bypass + cookie bypass together cover both fetch + navigation.
+    // https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation
+    extraHTTPHeaders: process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      ? {
+          'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+          'x-vercel-set-bypass-cookie': 'true',
+        }
+      : undefined,
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
