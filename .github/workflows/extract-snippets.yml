@@ -23,22 +23,22 @@ jobs:
     steps:
       - name: Mint App token (workspace read)
         id: workspace-token
-        if: ${{ vars.RELEASE_APP_ID != '' }}
+        if: ${{ vars.RELEASE_APP_CLIENT_ID != '' }}
         continue-on-error: true
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ vars.RELEASE_APP_ID }}
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           owner: dcyfr
           repositories: rei-workspace
 
       - name: Mint App token (PR creation)
         id: pr-token
-        if: ${{ vars.RELEASE_APP_ID != '' }}
+        if: ${{ vars.RELEASE_APP_CLIENT_ID != '' }}
         continue-on-error: true
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ vars.RELEASE_APP_ID }}
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
 
       - name: Checkout dcyfr-codes-snippets
