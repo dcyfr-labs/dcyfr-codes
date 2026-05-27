@@ -9,7 +9,12 @@
 # Related:
 # - openspec/changes/dcyfr-skeleton-sites-scaffolding/spec.md#5-polish-loop
 # - e2e/snapshots.spec.ts (routes + viewports)
-# - playwright.config.ts (baseURL reads BASE_URL)
+# - playwright.config.ts (baseURL reads BASE_URL; extraHTTPHeaders reads
+#   VERCEL_AUTOMATION_BYPASS_SECRET when Deployment Protection is on)
+#
+# Required repo secret: VERCEL_AUTOMATION_BYPASS_SECRET (generate per Vercel
+# project: Settings -> Deployment Protection -> Protection Bypass for Automation).
+# Without it, Playwright captures the Vercel SSO login page on protected previews.
 #
 # Manual runs: workflow_dispatch accepts a `base_url` override for debugging.
 
@@ -72,6 +77,8 @@ jobs:
         env:
           BASE_URL: ${{ steps.base.outputs.url }}
           CI: "true"
+          # See header comment: required for protected preview deploys.
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: npm run test:snapshots
 
       - name: Upload playwright-report on failure
