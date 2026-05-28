@@ -32,3 +32,5 @@ Fails if diff > 5% (`maxDiffPixelRatio: 0.05`).
 
 - [Polish loop architecture](../../../../docs/dcyfr-workspace/polish-loop.md)
 - [`nexus/scout-prompts/dcyfr-codes.md`](../../../../nexus/scout-prompts/dcyfr-codes.md)
+
+<!-- testing visual-regression bypass after VERCEL_AUTOMATION_BYPASS_SECRET added 2026-05-27 -->
