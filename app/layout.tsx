@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from '@/components/theme-provider';
 import { PageShell, SiteNav, SiteFooter } from '@/components/chrome';
+import { SiteCommandPalette } from '@/components/site-command-palette';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
@@ -58,28 +59,30 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" suppressHydrationWarning className={`${inter.variable} theme-dcyfr-codes`}>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:border focus:border-accent focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:text-foreground focus:outline-none"
-          >
-            Skip to main content
-          </a>
-          <PageShell
-            nav={<SiteNav logo={DcyfrCodesLogo} links={NAV_LINKS} />}
-            footer={
-              <SiteFooter
-                brand={{
-                  name: 'dcyfr.codes',
-                  tagline: 'Production-ready code patterns for the DCYFR ecosystem.',
-                }}
-                columns={FOOTER_COLUMNS}
-              />
-            }
-            padding="none"
-            maxWidth="full"
-          >
-            <div id="main-content">{children}</div>
-          </PageShell>
+          <SiteCommandPalette>
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:border focus:border-accent focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:text-foreground focus:outline-none"
+            >
+              Skip to main content
+            </a>
+            <PageShell
+              nav={<SiteNav logo={DcyfrCodesLogo} links={NAV_LINKS} />}
+              footer={
+                <SiteFooter
+                  brand={{
+                    name: 'dcyfr.codes',
+                    tagline: 'Production-ready code patterns for the DCYFR ecosystem.',
+                  }}
+                  columns={FOOTER_COLUMNS}
+                />
+              }
+              padding="none"
+              maxWidth="full"
+            >
+              <div id="main-content">{children}</div>
+            </PageShell>
+          </SiteCommandPalette>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
