@@ -1,0 +1,23 @@
+name: Dependabot auto-merge
+
+# actor: bot
+# Thin caller: real logic lives in the shared reusable workflow in dcyfr-labs/.github.
+# Patch/minor Dependabot bumps are approved and auto-merged once required status
+# checks pass (native auto-merge via the "main protection" ruleset); major bumps
+# stay open for manual review.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    uses: dcyfr-labs/.github/.github/workflows/dependabot-auto-merge.yml@main
+    permissions:
+      contents: write
+      pull-requests: write
