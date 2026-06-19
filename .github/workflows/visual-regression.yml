@@ -34,8 +34,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  snapshots:
-    name: Playwright snapshots
+  # Resolve the PR behind a Vercel preview deploy and decide whether the
+  # snapshot suite is worth running. Dependabot deps-only PRs (package.json /
+  # package-lock.json) cannot change rendered pixels, yet each one gets a fresh
+  # preview whose page height differs from the committed baseline -> false red.
+  # A deployment_status event carries no PR author in its context, so this has
+  # to be resolved with an API lookup rather than a job-level `if:`.
+  guard:
+    name: Resolve deploy context
     runs-on: ubuntu-latest
     # Gate on Vercel preview success. Manual dispatch skips the gate.
     if: >-
@@ -43,6 +49,66 @@ jobs:
       (github.event_name == 'deployment_status' &&
        github.event.deployment_status.state == 'success' &&
        github.event.deployment.environment == 'Preview')
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - name: Skip Dependabot deps-only previews
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // workflow_dispatch (manual) has no deployment/PR context -> run.
+            if (context.eventName !== 'deployment_status') {
+              core.setOutput('skip', 'false');
+              return;
+            }
+            const sha = context.payload.deployment?.sha;
+            if (!sha) {
+              core.setOutput('skip', 'false');
+              return;
+            }
+            const { data: prs } =
+              await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: sha,
+              });
+            const pr = prs.find((p) => p.state === 'open') ?? prs[0];
+            if (!pr || pr.user?.login !== 'dependabot[bot]') {
+              core.setOutput('skip', 'false');
+              return;
+            }
+            // Only skip when every changed file is a lockfile/manifest — an
+            // actions bump or a Dependabot PR that also touches source still
+            // runs the gate.
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+            const depsOnly =
+              files.length > 0 &&
+              files.every((f) =>
+                /(^|\/)(package\.json|package-lock\.json)$/.test(f.filename),
+              );
+            core.setOutput('skip', String(depsOnly));
+            if (depsOnly) {
+              core.notice(
+                `Visual regression skipped: Dependabot deps-only PR #${pr.number}`,
+              );
+            }
+
+  snapshots:
+    name: Playwright snapshots
+    needs: guard
+    # `needs: guard` makes this skip on non-preview events (guard is skipped
+    # there); when guard runs, honour its deps-only skip decision.
+    if: needs.guard.outputs.skip != 'true'
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       # Required for the diff-comment step to read + write PR comments.
