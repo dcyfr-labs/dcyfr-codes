@@ -9,3 +9,9 @@ tsconfig.tsbuildinfo
 test-results/
 playwright-report/
 playwright/.cache/
+
+# Stray nested checkout of dcyfr/dcyfr-workspace — its own git repo, never
+# content of dcyfr-codes. Was tracked as a broken mode-160000 gitlink (no
+# .gitmodules) — dead path in every clone. Found by the rei-workspace
+# git-hygiene scanner, 2026-07-11.
+/dcyfr-workspace/
