@@ -1,0 +1,17 @@
+# DCYFR Codes
+
+> Searchable code patterns and production-ready recipes for building with the DCYFR ecosystem — agent delegation, RAG pipelines, context engineering, and more.
+
+## Pages
+- [Home](https://dcyfr.codes/): Browse featured code snippets and patterns.
+- [Snippets](https://dcyfr.codes/snippets): Full snippet catalog.
+- [Categories](https://dcyfr.codes/categories): Snippets grouped by category (Agent Patterns, Delegation, RAG, Code Generation, Context Engineering, CLI, Infrastructure, Testing).
+
+## Snippets
+- [Basic Delegation Contract](https://dcyfr.codes/snippets/basic-delegation-contract): Delegate a task to a subagent with typed inputs and structured output using the DCYFR agent harness.
+- [Agent Approval Webhook Handler](https://dcyfr.codes/snippets/agent-approval-webhook): Validate and process Inngest webhook payloads for agent completion events with HMAC-SHA256 signature verification.
+- [Context Window Budget Guard](https://dcyfr.codes/snippets/context-window-budget): Estimate token usage and truncate context before it exceeds a model's context window limit.
+- [Mosh + Tailscale Connection Script](https://dcyfr.codes/snippets/mosh-tailscale-connect): Connect to a remote host via Mosh over Tailscale with a static UDP port for firewall compatibility.
+
+## Feeds
+- [Sitemap](https://dcyfr.codes/sitemap.xml): Canonical list of all indexable pages.
