@@ -1,0 +1,13 @@
+name: IndexNow
+
+on:
+  deployment_status:
+
+jobs:
+  submit:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.environment == 'Production'
+    uses: dcyfr-labs/.github/.github/workflows/indexnow-submit.yml@main
+    with:
+      host: www.dcyfr.codes
+    secrets:
+      indexnow-key: ${{ secrets.INDEXNOW_KEY }}
