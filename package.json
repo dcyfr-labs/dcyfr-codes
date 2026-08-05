@@ -51,7 +51,7 @@
   "overrides": {
     "cookie": "^0.7.0",
     "path-to-regexp": "^6.3.0",
-    "postcss": "^8.5.10",
+    "postcss": "$postcss",
     "uuid": "^14.0.0"
   }
 }
