@@ -12,7 +12,7 @@ const dcyfrButtonVariants = cva(
     variants: {
       variant: {
         brand:
-          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/95",
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 active:bg-primary/95",
         secure:
           "bg-secure text-secure-foreground ring-1 ring-secure/30 hover:bg-secure/90",
         ghostly:
