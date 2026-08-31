@@ -14,8 +14,27 @@ const VIEWPORTS = [
   { width: 375, height: 812, name: 'mobile' },
 ] as const;
 
+/*
+ * `/` carries `?spotlight=0` on purpose.
+ *
+ * The home route is `force-dynamic` and its featured-pattern slot draws a
+ * random snippet per request, so the page's height depends on which one it
+ * lands on. `toHaveScreenshot` treats a size mismatch as a hard failure
+ * regardless of maxDiffPixelRatio, so `home @ mobile` failed on roughly one
+ * run in five with a bare `Expected an image 375px by 2803px, received
+ * 375px by 2823px` and no pixel diff to look at.
+ *
+ * Measured against the production build over 20 loads per viewport: mobile
+ * produces two distinct heights, desktop exactly one. That asymmetry is the
+ * whole bug — at 375px one snippet's description wraps an extra line, and at
+ * 1440px they all fit on one, which is why only the mobile snapshot flaked.
+ *
+ * The param pins the pick without changing what a real visitor sees. Prefer
+ * it over masking the region: a mask paints over pixels but leaves the page
+ * the same amount taller, so the size check still fails.
+ */
 const ROUTES = [
-  { path: '/', name: 'home' },
+  { path: '/?spotlight=0', name: 'home' },
   { path: '/snippets', name: 'snippets-index' },
 ] as const;
 
