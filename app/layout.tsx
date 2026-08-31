@@ -6,12 +6,14 @@ import { PageShell, SiteNav, SiteFooter } from '@/components/chrome';
 import { SiteCommandPalette } from '@/components/site-command-palette';
 import './globals.css';
 
-// No next/font import here on purpose. dcyfr.codes declares a mono identity:
-// `.theme-dcyfr-codes` sets BOTH --font-sans and --font-mono to the same
-// ui-monospace stack, and that block wins over next/font's own --font-sans on
-// source order. So the Inter face this file used to import resolved to zero
-// elements on the page while still emitting a render-blocking
-// `<link rel="preload" as="font">` and downloading the woff2 on every load.
+// No next/font import here on purpose. dcyfr.codes reads mono end to end, and
+// it gets there from system stacks: globals.css fills the theme engine's
+// --font-display-loaded / --font-body-loaded hooks with ui-monospace, and the
+// engine's own --font-mono covers code. Nothing is downloaded. The Inter face
+// this file used to import already resolved to zero elements on the page —
+// the old identity block outranked next/font's --font-sans on source order —
+// while still emitting a render-blocking `<link rel="preload" as="font">` and
+// fetching the woff2 on every load.
 
 export const metadata: Metadata = {
   title: {
@@ -30,7 +32,7 @@ export const metadata: Metadata = {
 
 const DcyfrCodesLogo = (
   <span className="font-mono text-lg font-semibold tracking-tight">
-    dcyfr<span className="text-accent">.codes</span>
+    dcyfr<span className="text-accent-600">.codes</span>
   </span>
 );
 
@@ -60,13 +62,20 @@ const FOOTER_COLUMNS = [
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="theme-dcyfr-codes">
+    // data-identity selects the theme package; the .theme-dcyfr-codes class is
+    // kept as the dcyfr-site-scaffold identity hook, now intentionally empty.
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className="theme-dcyfr-codes"
+      data-identity="slate"
+    >
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <SiteCommandPalette>
             <a
               href="#main-content"
-              className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:border focus:border-accent focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:text-foreground focus:outline-none"
+              className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:border focus:border-accent-600 focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:text-foreground focus:outline-none"
             >
               Skip to main content
             </a>

@@ -52,7 +52,7 @@ export default function CategoriesPage() {
               className="group rounded-xl border border-input/60 bg-card/60 p-5 hover:border-secure/40 transition-colors"
             >
               <div className="flex items-start justify-between mb-2">
-                <h2 className="font-semibold text-foreground group-hover:text-accent transition-colors">
+                <h2 className="font-semibold text-foreground group-hover:text-accent-600 transition-colors">
                   {category}
                 </h2>
                 <span className="text-xs text-muted-foreground shrink-0 ml-2">

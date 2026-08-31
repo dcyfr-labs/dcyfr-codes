@@ -1,0 +1,85 @@
+@layer base {
+  /*
+   * One-frame swap suppression. The switcher (showcase surfaces only) adds
+   * .theme-swap to <html> for one frame around any data-identity or scheme
+   * change. Without it, stepped transitions strand mid-ramp colors on swap.
+   */
+  .theme-swap *,
+  .theme-swap *::before,
+  .theme-swap *::after {
+    transition: none !important;
+  }
+
+  /* Type roles bind here, so themes only ever supply faces. */
+  [data-identity] body {
+    font-family: var(--font-body);
+  }
+
+  [data-identity] h1,
+  [data-identity] h2,
+  [data-identity] h3,
+  [data-identity] h4,
+  [data-identity] h5,
+  [data-identity] h6 {
+    font-family: var(--font-display);
+  }
+
+  /*
+   * Mono is machine text. Ligatures are forced off structurally: a
+   * ligature-happy mono renders `--accent` as `—accent`, which is fatal in a
+   * token-heavy codebase. Tabular numerals keep aligned digits aligned.
+   */
+  [data-identity] code,
+  [data-identity] kbd,
+  [data-identity] samp,
+  [data-identity] pre {
+    font-family: var(--font-mono);
+    font-variant-ligatures: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * Reduced motion collapses everything — transitions, animations, smooth
+   * scroll, and scroll-driven timelines. Identity is visual language, never
+   * a vestibular hazard.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    [data-identity] *,
+    [data-identity] *::before,
+    [data-identity] *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      animation-timeline: none !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * The motion split, made structural. --motion-snap and --motion-ease each
+   * carry `duration easing` as a transition shorthand fragment.
+   *
+   *   .motion-snap — transform/opacity ONLY. Stepped timing on a color
+   *                  channel strands the value mid-ramp; these utilities are
+   *                  the sanctioned consumption path precisely so that can't
+   *                  happen by accident.
+   *   .motion-ease — color and surface properties.
+   */
+  .motion-snap {
+    transition:
+      transform var(--motion-snap),
+      opacity var(--motion-snap);
+  }
+
+  .motion-ease {
+    transition:
+      color var(--motion-ease),
+      background-color var(--motion-ease),
+      border-color var(--motion-ease),
+      fill var(--motion-ease),
+      stroke var(--motion-ease),
+      box-shadow var(--motion-ease);
+  }
+}

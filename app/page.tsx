@@ -68,7 +68,7 @@ export default function HomePage() {
               <span aria-hidden="true">▌</span> DCYFR ecosystem
             </p>
             <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl">
-              dcyfr<span className="text-accent">.codes</span>
+              dcyfr<span className="text-accent-600">.codes</span>
             </h1>
             <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
               Production-ready code patterns and recipes for the DCYFR
@@ -163,7 +163,7 @@ export default function HomePage() {
                 href={`/categories/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}
                 className="group rounded-xl border border-input/60 bg-card/60 p-4 transition-colors hover:border-secure/40"
               >
-                <p className="font-medium text-foreground transition-colors group-hover:text-accent">
+                <p className="font-medium text-foreground transition-colors group-hover:text-accent-600">
                   {category}
                 </p>
                 <DcyfrBadge

@@ -101,7 +101,7 @@ export default async function SnippetPage({ params }: Readonly<Props>) {
                   <span className={clsx('rounded-full border px-2.5 py-0.5 text-xs font-medium', DIFFICULTY_COLORS[snippet.difficulty])}>
                     {snippet.difficulty}
                   </span>
-                  <span className="rounded border border-input/40 bg-muted/60 px-1.5 py-0.5 text-xs font-mono text-accent">
+                  <span className="rounded border border-input/40 bg-muted/60 px-1.5 py-0.5 text-xs font-mono text-accent-600">
                     {snippet.language}
                   </span>
                   {snippet.deprecated && (
@@ -158,7 +158,7 @@ export default async function SnippetPage({ params }: Readonly<Props>) {
                   {snippet.dcyfrAiVersion && (
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">@dcyfr/ai</dt>
-                      <dd className="font-mono text-xs text-accent">{snippet.dcyfrAiVersion}</dd>
+                      <dd className="font-mono text-xs text-accent-600">{snippet.dcyfrAiVersion}</dd>
                     </div>
                   )}
                 </dl>
@@ -214,7 +214,7 @@ export default async function SnippetPage({ params }: Readonly<Props>) {
                           href={`https://dcyfr.bot/agents/${agentId}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-between text-sm text-accent hover:text-foreground transition-colors group"
+                          className="flex items-center justify-between text-sm text-accent-600 hover:text-foreground transition-colors group"
                         >
                           <span>{AGENT_NAMES[agentId] ?? agentId}</span>
                           <span className="text-muted-foreground group-hover:text-primary transition-colors text-xs">↗</span>
@@ -227,7 +227,7 @@ export default async function SnippetPage({ params }: Readonly<Props>) {
                       href="https://dcyfr.bot"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-primary hover:text-accent/70 transition-colors"
+                      className="text-xs text-primary hover:text-accent-600/70 transition-colors"
                     >
                       Browse all agents →
                     </a>

@@ -27,7 +27,7 @@ export function SnippetCard({ snippet }: Readonly<SnippetCardProps>) {
       className="group flex flex-col rounded-xl border border-input/60 bg-card/60 p-4 hover:border-secure/40 transition-colors"
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="rounded border border-input/40 bg-muted/60 px-1.5 py-0.5 text-xs font-mono font-medium text-accent">
+        <span className="rounded border border-input/40 bg-muted/60 px-1.5 py-0.5 text-xs font-mono font-medium text-accent-600">
           {LANGUAGE_LABELS[snippet.language] ?? snippet.language.toUpperCase()}
         </span>
         <span className={clsx('rounded-full border px-2 py-0.5 text-xs font-medium', DIFFICULTY_COLORS[snippet.difficulty])}>
@@ -40,7 +40,7 @@ export function SnippetCard({ snippet }: Readonly<SnippetCardProps>) {
         )}
       </div>
 
-      <h3 className="text-sm font-semibold text-foreground group-hover:text-accent transition-colors mb-1">
+      <h3 className="text-sm font-semibold text-foreground group-hover:text-accent-600 transition-colors mb-1">
         {snippet.title}
       </h3>
       <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 flex-1">
