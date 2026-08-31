@@ -7,33 +7,20 @@ interface GistButtonProps {
   snippet: Snippet;
 }
 
-const EXTENSIONS: Record<string, string> = {
-  typescript: 'ts',
-  bash: 'sh',
-  python: 'py',
-  json: 'json',
-  yaml: 'yaml',
-  markdown: 'md',
-};
-
 export function GistButton({ snippet }: Readonly<GistButtonProps>) {
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [gistUrl, setGistUrl] = useState<string | null>(null);
 
   async function handleCreateGist() {
     setState('loading');
-    const ext = EXTENSIONS[snippet.language] ?? 'txt';
-    const filename = `${snippet.slug}.${ext}`;
 
     try {
+      // The route resolves title, filename and content from the slug, so the
+      // browser never dictates what gets published under our GitHub token.
       const res = await fetch('/api/gist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          description: `${snippet.title} — dcyfr.codes`,
-          public: true,
-          files: { [filename]: { content: snippet.code } },
-        }),
+        body: JSON.stringify({ slug: snippet.slug }),
       });
 
       if (!res.ok) throw new Error('Gist creation failed');
