@@ -16,7 +16,26 @@
 # project: Settings -> Deployment Protection -> Protection Bypass for Automation).
 # Without it, Playwright captures the Vercel SSO login page on protected previews.
 #
-# Manual runs: workflow_dispatch accepts a `base_url` override for debugging.
+# Manual runs: workflow_dispatch accepts a `base_url` override for debugging,
+# and an `update_baselines` switch that regenerates the PNGs ON THE RUNNER and
+# uploads them as an artifact to commit.
+#
+# That switch exists because baselines have to come from x86 CI and there was
+# previously no way to get one. Artifacts upload only on failure, so a passing
+# run yields nothing to harvest, and the only documented update path was
+# `npm run test:snapshots:update` on a dev machine. On arm64 that is wrong for
+# both viewports: mobile text wraps differently and hard-fails on size, and
+# desktop silently absorbs ~57k pixels of antialiasing noise into the 5%
+# tolerance (measured 2026-08-31 at dcyfr-io on a build proven pixel-identical
+# to its predecessor).
+#
+# The switch regenerates with `--update-snapshots=all`, deliberately. A bare
+# `--update-snapshots` means `changed`, which rewrites a baseline only when the
+# render FAILED the comparison. Any correction smaller than the 5%
+# maxDiffPixelRatio therefore cannot be recorded at all: the run passes, writes
+# nothing, and the stale PNG survives its own regeneration. Confirmed at
+# dcyfr-io on 2026-08-31, where the first dispatch returned baselines
+# byte-identical by sha256 to the committed ones for a real change.
 
 name: Visual Regression
 
@@ -28,6 +47,14 @@ on:
         description: Preview URL to run snapshots against
         required: true
         type: string
+      update_baselines:
+        description: >-
+          Regenerate baselines against base_url and upload them as the
+          `updated-baselines` artifact instead of asserting against the
+          committed PNGs. Download, commit the PNGs, push.
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: visual-regression-${{ github.event.deployment_status.target_url || inputs.base_url }}
@@ -145,7 +172,30 @@ jobs:
           CI: "true"
           # See header comment: required for protected preview deploys.
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-        run: npm run test:snapshots
+          UPDATE_BASELINES: ${{ github.event_name == 'workflow_dispatch' && inputs.update_baselines }}
+        run: |
+          if [ "$UPDATE_BASELINES" = "true" ]; then
+            # :rebaseline, not :update. A bare --update-snapshots means
+            # `changed`, which rewrites a PNG only when the render FAILED the
+            # comparison — so any correction smaller than maxDiffPixelRatio
+            # cannot be recorded, and the run reports success having changed
+            # nothing. =all writes unconditionally.
+            npm run test:snapshots:rebaseline
+          else
+            npm run test:snapshots
+          fi
+
+      # Unconditional (not `if: failure()`) — a regeneration run passes by
+      # definition, so gating this on failure is what made CI-rendered
+      # baselines unobtainable in the first place.
+      - name: Upload regenerated baselines
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.update_baselines }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-baselines
+          path: e2e/snapshots.spec.ts-snapshots/
+          retention-days: 14
+          if-no-files-found: error
 
       - name: Upload playwright-report on failure
         id: upload
@@ -201,12 +251,16 @@ jobs:
                 ? `- **Failure artifacts:** [playwright-report.zip](${artifactUrl})`
                 : '- **Failure artifacts:** see the workflow run artifacts page',
               '',
-              'To update baselines locally:',
-              '```bash',
-              `BASE_URL=${previewUrl} npm run test:snapshots:update`,
-              '```',
+              'If the change is intentional, regenerate the baselines **on the runner** —',
+              'run this workflow via `workflow_dispatch` with `update_baselines: true`',
+              `and \`base_url: ${previewUrl}\`, then download the \`updated-baselines\``,
+              'artifact and commit its PNGs.',
               '',
-              'If the change is intentional, commit the regenerated PNGs. Otherwise investigate the diff before merging.',
+              'Do not regenerate on an arm64 dev machine: mobile wraps differently and',
+              'hard-fails on size, and desktop bakes ~57k pixels of antialiasing noise',
+              'into the 5% tolerance.',
+              '',
+              'Otherwise investigate the diff before merging.',
             ].join('\n');
 
             for (const pr of prs) {

@@ -14,7 +14,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:snapshots": "playwright test e2e/snapshots.spec.ts --project=chromium",
-    "test:snapshots:update": "playwright test e2e/snapshots.spec.ts --project=chromium --update-snapshots"
+    "test:snapshots:update": "playwright test e2e/snapshots.spec.ts --project=chromium --update-snapshots",
+    "test:snapshots:rebaseline": "playwright test e2e/snapshots.spec.ts --project=chromium --update-snapshots=all",
+    "check:theme-wiring": "node scripts/check-theme-wiring.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
