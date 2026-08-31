@@ -120,8 +120,11 @@
    * computed calc(2px - 2px). Both dropped to 0px. So twenty of the
    * twenty-six call sites (7 sm + 13 md) were rendering perfectly square while
    * the source said otherwise, and only the six `rounded-lg` ever painted a
-   * curve, at 2px. Most of the "gets rounder" delta in the baselines is that
-   * bug being fixed rather than a style change.
+   * curve, at 2px. So the corner delta in the baselines is mostly that bug
+   * being fixed rather than a style change. It is not, however, the largest
+   * thing moving in those PNGs — see the note in layout.tsx: the committed
+   * baselines predate PR #37 and render sans, so the re-baseline also cashes
+   * in this site's mono identity finally applying.
    *
    * The four bare `rounded` call sites are untouched by all of this: v4 leaves
    * `rounded` on its own stock .25rem and the v3 config never overrode it.

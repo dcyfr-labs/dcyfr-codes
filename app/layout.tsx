@@ -9,11 +9,16 @@ import './globals.css';
 // No next/font import here on purpose. dcyfr.codes reads mono end to end, and
 // it gets there from system stacks: globals.css fills the theme engine's
 // --font-display-loaded / --font-body-loaded hooks with ui-monospace, and the
-// engine's own --font-mono covers code. Nothing is downloaded. The Inter face
-// this file used to import already resolved to zero elements on the page —
-// the old identity block outranked next/font's --font-sans on source order —
-// while still emitting a render-blocking `<link rel="preload" as="font">` and
-// fetching the woff2 on every load.
+// engine's own --font-mono covers code. Nothing is downloaded.
+//
+// The comment this replaces had the old failure backwards, and it is worth
+// stating correctly because the baselines encode it. It claimed the identity
+// block beat next/font and that Inter "resolved to zero elements". The
+// opposite was true: `Inter({ variable: '--font-sans' })` set --font-sans on
+// <html>, the same element carrying .theme-dcyfr-codes, and Inter won — so
+// the site shipped sans and the mono identity was the half reaching nothing.
+// PR #37 fixed it by deleting the Inter variable, but did not re-baseline, so
+// every committed PNG rendered sans until this branch regenerated them.
 
 export const metadata: Metadata = {
   title: {
