@@ -67,6 +67,15 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      // Without these the `font-sans` / `font-mono` utilities emit Tailwind's
+      // stock stacks instead of the identity vars, so `.theme-dcyfr-codes`
+      // is not actually authoritative for anything carrying those classes.
+      // Harmless today because both stacks are mono, but it means the
+      // identity block cannot change the type of the site it names.
+      fontFamily: {
+        sans: ['var(--font-sans)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
       transitionTimingFunction: {
         brand: 'var(--ease-brand)',
       },

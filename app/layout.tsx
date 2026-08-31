@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -7,7 +6,12 @@ import { PageShell, SiteNav, SiteFooter } from '@/components/chrome';
 import { SiteCommandPalette } from '@/components/site-command-palette';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+// No next/font import here on purpose. dcyfr.codes declares a mono identity:
+// `.theme-dcyfr-codes` sets BOTH --font-sans and --font-mono to the same
+// ui-monospace stack, and that block wins over next/font's own --font-sans on
+// source order. So the Inter face this file used to import resolved to zero
+// elements on the page while still emitting a render-blocking
+// `<link rel="preload" as="font">` and downloading the woff2 on every load.
 
 export const metadata: Metadata = {
   title: {
@@ -56,7 +60,7 @@ const FOOTER_COLUMNS = [
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} theme-dcyfr-codes`}>
+    <html lang="en" suppressHydrationWarning className="theme-dcyfr-codes">
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <SiteCommandPalette>
