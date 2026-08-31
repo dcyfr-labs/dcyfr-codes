@@ -7,10 +7,23 @@ import { cn } from "@/lib/utils"
 // Pattern source: gameshark-labs/sharkvault/components/animated-counter.tsx
 //
 // Counts up from 0 to `value` over `durationMs` using requestAnimationFrame.
-// Only fires once (on first mount). Cheap, library-free polish that signals
-// "this number is live — the page just loaded it." Used inside
-// DcyfrStatusMarquee for numeric stats; also useful standalone on dashboard
-// tiles, hero stat counters, etc.
+// Runs on mount and again whenever `value` changes. Cheap, library-free
+// polish that signals "this number is live — the page just loaded it." Used
+// inside DcyfrStatusMarquee for numeric stats; also useful standalone on
+// dashboard tiles, hero stat counters, etc.
+//
+// The effect deliberately has NO "already started" ref latch. A latch set
+// before the rAF is scheduled cannot survive React's StrictMode
+// mount → unmount → remount probe (dev default since Next 13.5): the first
+// pass zeroes the display and schedules a frame, the simulated unmount
+// cancels it, and the second pass short-circuits on the latch and never
+// re-schedules — leaving every counter frozen at 0. The effect is idempotent
+// and its cleanup cancels the in-flight frame, so re-running it is safe;
+// re-runs are what make the count correct, not what makes it flicker.
+//
+// The value is rendered server-side and used as the initial state, so the
+// pre-hydration HTML is already correct — every early return below just
+// keeps that value rather than zeroing it.
 //
 // Respects `prefers-reduced-motion: reduce` by default — when the user has
 // opted out of motion, we render the final value immediately and skip the
@@ -50,11 +63,9 @@ const DcyfrAnimatedCounter = React.forwardRef<
     ref
   ) => {
     const [display, setDisplay] = React.useState(value)
-    const startedRef = React.useRef(false)
 
     React.useEffect(() => {
-      if (startedRef.current) return
-      startedRef.current = true
+      if (typeof window === "undefined") return
 
       // Animation effect — setDisplay calls below are intentional. The
       // entire purpose of this component is to drive a counter via rAF,
@@ -66,10 +77,15 @@ const DcyfrAnimatedCounter = React.forwardRef<
       // (an unknown-rule disable is itself a lint error). Consumers on
       // strict configs should add their own `// eslint-disable-next-line`
       // here or scope an override in their eslint.config.
+
+      // Reduced motion, or a tab that is hidden right now: rAF does not fire
+      // in a background tab, so starting the loop would zero the display and
+      // leave it reading 0 until the tab is foregrounded (and in prerender /
+      // screenshot contexts, forever). Render the final value instead.
       if (
-        respectReducedMotion &&
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        (respectReducedMotion &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches) ||
+        document.visibilityState === "hidden"
       ) {
         setDisplay(value)
         return
