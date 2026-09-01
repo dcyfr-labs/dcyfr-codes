@@ -148,7 +148,7 @@ function SnippetsPageContent() {
                 key={diff}
                 type="button"
                 onClick={() => setActiveDifficulty(activeDifficulty === diff ? null : diff)}
-                className={`rounded-full border px-3 py-1 text-xs transition-colors ${activeDifficulty === diff ? 'border-primary bg-primary text-foreground' : 'border-input/60 bg-muted/40 text-muted-foreground hover:border-secure/40'}`}
+                className={`rounded-full border px-3 py-1 text-xs transition-colors ${activeDifficulty === diff ? 'border-primary bg-primary text-primary-foreground' : 'border-input/60 bg-muted/40 text-muted-foreground hover:border-secure/40'}`}
               >
                 {diff}
               </button>
@@ -158,7 +158,7 @@ function SnippetsPageContent() {
                 key={lang}
                 type="button"
                 onClick={() => setActiveLanguage(activeLanguage === lang ? null : lang)}
-                className={`rounded-full border px-3 py-1 text-xs font-mono transition-colors ${activeLanguage === lang ? 'border-primary bg-primary text-foreground' : 'border-input/60 bg-muted/40 text-muted-foreground hover:border-secure/40'}`}
+                className={`rounded-full border px-3 py-1 text-xs font-mono transition-colors ${activeLanguage === lang ? 'border-primary bg-primary text-primary-foreground' : 'border-input/60 bg-muted/40 text-muted-foreground hover:border-secure/40'}`}
               >
                 {lang}
               </button>
