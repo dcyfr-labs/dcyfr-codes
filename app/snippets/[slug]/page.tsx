@@ -101,7 +101,10 @@ export default async function SnippetPage({ params }: Readonly<Props>) {
                   <span className={clsx('rounded-full border px-2.5 py-0.5 text-xs font-medium', DIFFICULTY_COLORS[snippet.difficulty])}>
                     {snippet.difficulty}
                   </span>
-                  <span className="rounded border border-input/40 bg-muted/60 px-1.5 py-0.5 text-xs font-mono text-accent-600">
+                  {/* Same chip as components/SnippetCard.tsx — see the note
+                      there for why the dark half of the accent ramp is
+                      explicit rather than inherited. */}
+                  <span className="rounded border border-input/40 bg-muted/60 px-1.5 py-0.5 text-xs font-mono text-accent-600 dark:text-accent-400">
                     {snippet.language}
                   </span>
                   {snippet.deprecated && (

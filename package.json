@@ -13,6 +13,7 @@
     "export:snippets": "node scripts/extract-skills-snippets.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:contrast": "playwright test e2e/contrast.spec.ts --project=chromium",
     "test:snapshots": "playwright test e2e/snapshots.spec.ts --project=chromium",
     "test:snapshots:update": "playwright test e2e/snapshots.spec.ts --project=chromium --update-snapshots",
     "test:snapshots:rebaseline": "playwright test e2e/snapshots.spec.ts --project=chromium --update-snapshots=all",

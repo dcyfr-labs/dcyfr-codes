@@ -166,6 +166,18 @@ jobs:
             echo "url=${{ github.event.deployment_status.target_url }}" >> "$GITHUB_OUTPUT"
           fi
 
+      # Runs before the snapshot suite on purpose. The pixel gate cannot see
+      # invisible text: in the slate palette dark --primary and dark --foreground
+      # are the same value, so a bg-primary fill wearing text-foreground renders
+      # white-on-white and diffs to a handful of pixels well inside the 5%
+      # tolerance. Contrast is measured, not diffed, and needs no baseline.
+      - name: Run contrast gate (light + dark)
+        env:
+          BASE_URL: ${{ steps.base.outputs.url }}
+          CI: "true"
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: npm run test:contrast
+
       - name: Run snapshot suite
         env:
           BASE_URL: ${{ steps.base.outputs.url }}

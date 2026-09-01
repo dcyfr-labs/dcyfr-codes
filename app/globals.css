@@ -80,6 +80,15 @@
    * Left alone they would have become a near-white surface tint on a
    * near-white ground — invisible. They move to `text-accent-600`, matching
    * dcyfr.build and dcyfr.work.
+   *
+   * 600 was chosen against that near-white ground and is correct on it in both
+   * schemes. It is NOT correct on a tinted ground in dark: the language chip
+   * on snippet cards sits on `bg-muted/60` over `bg-card/60`, which in dark
+   * lifts the ground toward the text instead of away from it, and 600 lands at
+   * 3.94:1 against AA's 4.5. Those two call sites carry an explicit
+   * `dark:text-accent-400` (7.89:1). Anything placing this ramp on a tinted
+   * surface needs the same treatment — 400 on the LIGHT ground is 2.39:1, so
+   * the split is per-surface and cannot be hoisted into the token itself.
    */
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
@@ -257,6 +266,6 @@
     tab-size: 2;
   }
   .code-block code {
-    @apply font-mono text-sm text-foreground/70 whitespace-pre;
+    @apply font-mono text-sm text-foreground whitespace-pre;
   }
 }
