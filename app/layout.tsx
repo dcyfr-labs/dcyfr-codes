@@ -58,6 +58,12 @@ const FOOTER_COLUMNS = [
   },
 ];
 
+const LEGAL_LINKS = [
+  { href: '/privacy', label: 'Privacy' },
+  { href: 'https://dcyfr.ai/terms', label: 'Terms', external: true },
+  { href: 'https://dcyfr.ai/security', label: 'Security', external: true },
+];
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning className="theme-dcyfr-codes">
@@ -79,6 +85,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                     tagline: 'Production-ready code patterns for the DCYFR ecosystem.',
                   }}
                   columns={FOOTER_COLUMNS}
+                  legal={LEGAL_LINKS}
                 />
               }
               padding="none"
