@@ -37,6 +37,13 @@
 # dcyfr-io on 2026-08-31, where the first dispatch returned baselines
 # byte-identical by sha256 to the committed ones for a real change.
 
+# The regeneration switch additionally refuses to run unless `base_url`
+# resolves, through the GitHub deployments API, to a deployment built from this
+# run's HEAD commit — see the step comment on "Verify base_url was built from
+# HEAD". The uploaded artifact carries a `baseline-source.json` recording the
+# deployment the PNGs were captured from, so a reviewer does not have to
+# re-derive it.
+
 name: Visual Regression
 
 on:
@@ -141,6 +148,9 @@ jobs:
       # Required for the diff-comment step to read + write PR comments.
       contents: read
       pull-requests: write
+      # Required to resolve base_url back to a deployment sha before
+      # regenerating baselines.
+      deployments: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -165,6 +175,155 @@ jobs:
           else
             echo "url=${{ github.event.deployment_status.target_url }}" >> "$GITHUB_OUTPUT"
           fi
+
+      # `base_url` is free text: nothing about it proves the render behind it was
+      # built from the commit the regenerated PNGs will be committed onto. A
+      # dispatch against a stale preview, or against an older production
+      # deploy, yields baselines that look authoritative and describe a render
+      # that no longer exists.
+      #
+      # Not hypothetical. Fleet-wide on 2026-09-01, four repos carried mobile
+      # baselines captured before the `Privacy / Terms / Security` footer row
+      # was rendering — even though app/layout.tsx was byte-identical between
+      # the commit the baselines were committed in and main, and already had
+      # the links. Every mobile baseline was 28px short (dcyfr-io was 128px
+      # long, from a footer restructure the other way). A size mismatch is not
+      # covered by maxDiffPixelRatio; it hard-fails. Those baselines had been
+      # red since before they were committed.
+      #
+      # Resolution goes through the deployments API: find the deployment whose
+      # status environment_url/target_url is base_url, and require its sha to
+      # be this run's HEAD. The assert path (update_baselines: false) is left
+      # unguarded on purpose — running it against an arbitrary URL is
+      # legitimate debugging.
+      - name: Verify base_url was built from HEAD
+        id: deployment
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.update_baselines }}
+        uses: actions/github-script@v7
+        env:
+          BASE_URL: ${{ steps.base.outputs.url }}
+        with:
+          script: |
+            // Compare on origin. Vercel records a bare deployment URL, while a
+            // hand-pasted base_url routinely carries a trailing slash, a route,
+            // or no scheme at all.
+            const toOrigin = (raw) => {
+              const trimmed = String(raw ?? '').trim();
+              if (!trimmed) return null;
+              try {
+                const withScheme = /^https?:\/\//i.test(trimmed)
+                  ? trimmed
+                  : `https://${trimmed}`;
+                return new URL(withScheme).origin.toLowerCase();
+              } catch {
+                return null;
+              }
+            };
+
+            const target = toOrigin(process.env.BASE_URL);
+            if (!target) {
+              core.setFailed(
+                `base_url is not a URL: ${JSON.stringify(process.env.BASE_URL)}`,
+              );
+              return;
+            }
+
+            // A deployment's URL lives on its statuses, not on the deployment.
+            const originsFor = async (deploymentId) => {
+              const { data: statuses } =
+                await github.rest.repos.listDeploymentStatuses({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deploymentId,
+                  per_page: 100,
+                });
+              const origins = new Set();
+              for (const status of statuses) {
+                for (const url of [status.environment_url, status.target_url]) {
+                  const origin = toOrigin(url);
+                  if (origin) origins.add(origin);
+                }
+              }
+              return origins;
+            };
+
+            // Only a deployment of HEAD can pass, so ask for those first —
+            // this is one page in practice, and avoids a scan on the happy
+            // path.
+            const headDeployments = await github.paginate(
+              github.rest.repos.listDeployments,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: context.sha,
+                per_page: 100,
+              },
+            );
+
+            for (const deployment of headDeployments) {
+              if (!(await originsFor(deployment.id)).has(target)) continue;
+              core.info(
+                `${target} is deployment ${deployment.id} ` +
+                  `(${deployment.environment}), built from ${context.sha} — ` +
+                  'matches HEAD.',
+              );
+              core.setOutput('id', String(deployment.id));
+              core.setOutput('sha', deployment.sha);
+              core.setOutput('environment', deployment.environment ?? '');
+              core.setOutput('created_at', deployment.created_at ?? '');
+              return;
+            }
+
+            // No match at HEAD. Scan recent deployments so the failure can name
+            // the commit the URL actually belongs to. Bounded and best-effort:
+            // this costs one status lookup per deployment, and a diagnostic
+            // must not be what fails the step.
+            const SCAN_LIMIT = 100;
+            let culprit = null;
+            try {
+              const { data: recent } = await github.rest.repos.listDeployments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: SCAN_LIMIT,
+              });
+              for (const deployment of recent) {
+                if ((await originsFor(deployment.id)).has(target)) {
+                  culprit = deployment;
+                  break;
+                }
+              }
+            } catch (error) {
+              core.warning(
+                `Could not scan recent deployments for ${target}: ${error.message}`,
+              );
+            }
+
+            const lines = [
+              `Refusing to regenerate baselines from ${target}.`,
+              '',
+              `HEAD of this run is ${context.sha} (${context.ref}).`,
+            ];
+            if (culprit) {
+              lines.push(
+                `${target} was built from ${culprit.sha} (deployment ` +
+                  `${culprit.id}, ${culprit.environment}, created ` +
+                  `${culprit.created_at}).`,
+                '',
+                'PNGs captured from it would describe a render this commit does',
+                'not produce. Dispatch against the deployment for',
+                `${context.sha} instead.`,
+              );
+            } else {
+              lines.push(
+                `No deployment of ${context.sha} reports ${target}, and none of`,
+                `the ${SCAN_LIMIT} most recent deployments claims it either.`,
+                '',
+                'Use the deployment\'s own `environment_url`. A branch alias or a',
+                'custom domain is not recorded on the deployment status, so it',
+                'cannot be resolved back to a commit.',
+              );
+            }
+            core.setFailed(lines.join('\n'));
 
       # Runs before the snapshot suite on purpose. The pixel gate cannot see
       # invisible text: in the slate palette dark --primary and dark --foreground
@@ -196,6 +355,55 @@ jobs:
           else
             npm run test:snapshots
           fi
+
+      # Provenance travels with the pixels. Without it `updated-baselines` is a
+      # bag of images whose source deploy has to be re-derived by hand, which is
+      # exactly the step nobody took when the stale mobile baselines landed.
+      # Written into the snapshot dir so it sits beside the PNGs in the
+      # artifact; it is not a snapshot and Playwright ignores it.
+      - name: Stamp baseline provenance
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.update_baselines }}
+        uses: actions/github-script@v7
+        env:
+          BASE_URL: ${{ steps.base.outputs.url }}
+          DEPLOYMENT_ID: ${{ steps.deployment.outputs.id }}
+          DEPLOYMENT_SHA: ${{ steps.deployment.outputs.sha }}
+          DEPLOYMENT_ENVIRONMENT: ${{ steps.deployment.outputs.environment }}
+          DEPLOYMENT_CREATED_AT: ${{ steps.deployment.outputs.created_at }}
+        with:
+          script: |
+            const fs = require('fs');
+            const dir = 'e2e/snapshots.spec.ts-snapshots';
+            const manifest = {
+              repository: `${context.repo.owner}/${context.repo.repo}`,
+              head_sha: context.sha,
+              ref: context.ref,
+              base_url: process.env.BASE_URL,
+              deployment: {
+                id: Number(process.env.DEPLOYMENT_ID),
+                sha: process.env.DEPLOYMENT_SHA,
+                environment: process.env.DEPLOYMENT_ENVIRONMENT,
+                created_at: process.env.DEPLOYMENT_CREATED_AT,
+              },
+              runner_os: process.env.RUNNER_OS,
+              runner_arch: process.env.RUNNER_ARCH,
+              run_url:
+                `${context.serverUrl}/${context.repo.owner}/` +
+                `${context.repo.repo}/actions/runs/${context.runId}`,
+              snapshots: fs
+                .readdirSync(dir)
+                .filter((name) => name.endsWith('.png'))
+                .sort(),
+            };
+            fs.writeFileSync(
+              `${dir}/baseline-source.json`,
+              `${JSON.stringify(manifest, null, 2)}\n`,
+            );
+            core.info(
+              `Stamped ${dir}/baseline-source.json ` +
+                `(deployment ${process.env.DEPLOYMENT_ID}, ` +
+                `sha ${process.env.DEPLOYMENT_SHA}).`,
+            );
 
       # Unconditional (not `if: failure()`) — a regeneration run passes by
       # definition, so gating this on failure is what made CI-rendered
@@ -267,6 +475,10 @@ jobs:
               'run this workflow via `workflow_dispatch` with `update_baselines: true`',
               `and \`base_url: ${previewUrl}\`, then download the \`updated-baselines\``,
               'artifact and commit its PNGs.',
+              '',
+              'The regeneration run refuses any `base_url` that was not built from the',
+              'branch HEAD, so if you have pushed since this comment, dispatch against',
+              'the newest preview instead.',
               '',
               'Do not regenerate on an arm64 dev machine: mobile wraps differently and',
               'hard-fails on size, and desktop bakes ~57k pixels of antialiasing noise',
