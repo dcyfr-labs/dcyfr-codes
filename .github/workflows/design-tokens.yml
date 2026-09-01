@@ -2,7 +2,7 @@
 # openspec/specs/dcyfr-site-scaffold (landed via
 # openspec/changes/dcyfr-sites-design-parity Phase 3.9 / 4.1).
 #
-# Three gates, failing independently so feedback stays granular:
+# Four gates, failing independently so feedback stays granular:
 #
 #   1. legacy-palette  — `dcyfr-primary-N` / `dcyfr-accent-N` scaled AND
 #                        unscaled refs. Replaces the narrow grep from the
@@ -14,6 +14,14 @@
 #                        (--card, --muted, etc.) WITHOUT matching
 #                        `.dark .theme-<name>` scope. CSS-cascade bug fixed
 #                        in dcyfr-work + dcyfr-app during the 2026-04-19 sweep.
+#   4. theme-wiring    — post-adoption successor to gate 3. Once a site moves
+#                        to the theme engine its `.theme-<name>` block is
+#                        empty, so gate 3 passes trivially; the failure just
+#                        moves to the three-way link between installed theme
+#                        files, the @import, and the data-identity stamp. Any
+#                        of those breaking leaves the site rendering on
+#                        Tailwind defaults with no build or type error.
+#                        Skips at sites that have not adopted yet.
 #
 # Gates 1–2 are enforced by the dcyfr-local ESLint plugin (`npm run lint`
 # with `no-legacy-dcyfr-palette` + `no-hardcoded-colors` at error severity).
@@ -36,6 +44,7 @@ on:
       - 'tailwind.config.*'
       - 'eslint.config.*'
       - 'eslint-local-rules/**'
+      - 'scripts/check-theme-wiring.mjs'
       - '.github/workflows/design-tokens.yml'
   workflow_dispatch:
 
@@ -120,3 +129,22 @@ jobs:
           NODE
         env:
           CSS_FILE: ${{ hashFiles('app/globals.css') != '' && 'app/globals.css' || 'src/app/globals.css' }}
+
+  theme-wiring:
+    name: theme-engine wiring
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # No npm install: the checker reads files and has no dependencies, so it
+      # runs in seconds and cannot be broken by a lockfile problem it is not
+      # about.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check theme files, imports and data-identity agree
+        run: node scripts/check-theme-wiring.mjs

@@ -173,7 +173,7 @@ function SnippetsPageContent() {
             <button
               type="button"
               onClick={() => { setSearch(''); setActiveCategory(null); setActiveDifficulty(null); setActiveLanguage(null); }}
-              className="mt-3 text-sm text-accent hover:text-foreground transition-colors"
+              className="mt-3 text-sm text-accent-600 hover:text-foreground transition-colors"
             >
               Clear all filters
             </button>

@@ -10,12 +10,12 @@ const dcyfrCardVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-card shadow-sm",
+        default: "bg-card shadow-xs",
         elevated: "bg-card shadow-md hover:shadow-lg transition-shadow",
         secure:
-          "bg-card ring-1 ring-secure/30 shadow-sm",
+          "bg-card ring-1 ring-secure/30 shadow-xs",
         glass:
-          "bg-card/60 backdrop-blur-md border-border/50 shadow-sm",
+          "bg-card/60 backdrop-blur-md border-border/50 shadow-xs",
         ghostly: "bg-transparent border-dashed",
       },
       padding: {

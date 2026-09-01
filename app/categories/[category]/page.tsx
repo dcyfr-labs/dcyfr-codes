@@ -67,7 +67,7 @@ export default async function CategoryPage({ params }: Readonly<Props>) {
         {categorySnippets.length === 0 ? (
           <div className="rounded-xl border border-border/40 bg-card/40 p-10 text-center">
             <p className="text-muted-foreground">No snippets in this category yet.</p>
-            <Link href="/snippets" className="mt-3 block text-sm text-accent hover:text-foreground transition-colors">Browse all snippets →</Link>
+            <Link href="/snippets" className="mt-3 block text-sm text-accent-600 hover:text-foreground transition-colors">Browse all snippets →</Link>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">

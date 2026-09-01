@@ -42,9 +42,35 @@ const CATEGORIES: SnippetCategory[] = [
   'Testing',
 ];
 
-export default function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ spotlight?: string }>;
+}) {
   const typed = snippets as Snippet[];
   const active = typed.filter((s) => !s.deprecated);
+
+  // `?spotlight=<index>` pins the featured pick to one snippet instead of
+  // randomizing it. This exists because the random pick makes the page's
+  // rendered HEIGHT nondeterministic, which a full-page screenshot cannot
+  // tolerate: Playwright hard-fails a size mismatch regardless of
+  // maxDiffPixelRatio, so `home @ mobile` flaked on whichever pick the run
+  // happened to draw.
+  //
+  // Measured against the production build, 20 loads per viewport:
+  //   375px  -> 2 distinct page heights (one snippet's description wraps a
+  //             line longer, giving a 237px card instead of 231px)
+  //   1440px -> 1 height; every pick fits on one line, which is why only
+  //             the mobile snapshot ever failed.
+  //
+  // Out of range or unparseable falls through to the random pick, so the
+  // page's normal behavior is unchanged for real visitors.
+  const { spotlight } = await searchParams;
+  const pinned = Number(spotlight);
+  const spotlightItems =
+    spotlight !== undefined && Number.isInteger(pinned) && pinned >= 0 && pinned < active.length
+      ? [active[pinned]]
+      : active;
 
   const byCategory = CATEGORIES.map((cat) => ({
     category: cat,
@@ -68,7 +94,7 @@ export default function HomePage() {
               <span aria-hidden="true">▌</span> DCYFR ecosystem
             </p>
             <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl">
-              dcyfr<span className="text-accent">.codes</span>
+              dcyfr<span className="text-accent-600">.codes</span>
             </h1>
             <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
               Production-ready code patterns and recipes for the DCYFR
@@ -127,7 +153,7 @@ export default function HomePage() {
               Random pick
             </DcyfrBadge>
           </div>
-          <DcyfrSpotlight items={active} empty={<p className="text-sm text-muted-foreground">No snippets yet.</p>}>
+          <DcyfrSpotlight items={spotlightItems} empty={<p className="text-sm text-muted-foreground">No snippets yet.</p>}>
             {(snippet) => (
               <div className="rounded-2xl border border-input/60 bg-card/40 p-6 sm:p-8">
                 <SnippetCard snippet={snippet} />
@@ -163,7 +189,7 @@ export default function HomePage() {
                 href={`/categories/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}
                 className="group rounded-xl border border-input/60 bg-card/60 p-4 transition-colors hover:border-secure/40"
               >
-                <p className="font-medium text-foreground transition-colors group-hover:text-accent">
+                <p className="font-medium text-foreground transition-colors group-hover:text-accent-600">
                   {category}
                 </p>
                 <DcyfrBadge
