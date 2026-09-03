@@ -40,7 +40,7 @@ export interface SiteNavProps {
   /** Optional right-aligned CTA (e.g. "Sign in", "Get started"). */
   cta?: NavCTA;
   /** Layout variant — matches dcyfr-navigation-menu variants.
-   *  - `default`: full-width bordered bar with backdrop-blur
+   *  - `default`: full-width bordered bar with backdrop-blur-sm
    *  - `centered`: max-width container, transparent bg
    *  - `minimal`: transparent, no border */
   variant?: 'default' | 'centered' | 'minimal';
@@ -52,7 +52,7 @@ export interface SiteNavProps {
 
 const variantClass = {
   default:
-    'sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60',
+    'sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60',
   centered: 'sticky top-0 z-40 w-full bg-transparent',
   minimal: 'w-full bg-transparent',
 } as const;
@@ -89,7 +89,7 @@ export function SiteNav({
                   target={link.external ? '_blank' : undefined}
                   rel={link.external ? 'noopener noreferrer' : undefined}
                   onClick={link.onClick}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {link.label}
                 </Link>
