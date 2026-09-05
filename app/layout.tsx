@@ -27,10 +27,16 @@ import './globals.css';
 // and code alike, so a GeistSans.variable on this element would render zero
 // glyphs while still emitting a <link rel="preload" as="font"> for
 // Geist-Variable.woff2 (69,652 bytes on disk) on every page. That was measured
-// by building with both imports and reading the preload tags out of
-// .next/server/app/*.html. Reversing it is two lines: import GeistSans, add
-// its .variable below, and point --font-sans at --font-geist-sans in
-// globals.css.
+// by building with both imports and reading the preload tags out of the
+// prerendered HTML under .next/server/app. Reversing it is two lines: import
+// GeistSans, add its .variable below, and point --font-sans at
+// --font-geist-sans in globals.css.
+//
+// Spell that path without a glob. check-theme-wiring.mjs strips block
+// comments before line comments, so a literal slash-star anywhere in this
+// header opens a comment the stripper only closes at the next star-slash,
+// which is the JSX comment below the <html> tag. The data-identity stamp
+// lands inside that span and the check reports the theme unwired.
 //
 // The historical note is still worth keeping, because the baselines encode it.
 // The pre-#37 comment had the old failure backwards: it claimed the identity

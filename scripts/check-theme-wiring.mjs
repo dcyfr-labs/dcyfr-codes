@@ -92,9 +92,15 @@ if (!layoutPath) {
  * The `(?<!:)` guard keeps `https://…` in metadata URLs from eating the rest
  * of its line. Crude, and fine: nothing here is reconstructed afterwards, this
  * text is only ever scanned for one attribute.
+ *
+ * One alternation rather than two passes, so whichever comment opens first
+ * wins. Two passes made a slash-star inside a line comment open a block that
+ * closed at the next star-slash, which in a layout is the first JSX comment.
+ * A prose mention of a build path with a glob in it was enough to swallow the
+ * <html> tag and report a correctly stamped layout as unwired.
  */
 function stripComments(src) {
-  return src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(?<!:)\/\/[^\n]*/g, '');
+  return src.replace(/\/\*[\s\S]*?\*\/|(?<!:)\/\/[^\n]*/g, '');
 }
 
 const layout = layoutPath ? stripComments(readFileSync(layoutPath, 'utf8')) : '';
