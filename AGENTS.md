@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`dcyfr.codes` is a Next.js 15 / React 19 searchable library of code patterns and recipes for the DCYFR ecosystem.
+`dcyfr.codes` is a Next.js 16 / React 19 searchable library of code patterns and recipes for the DCYFR ecosystem.
 
 ## Architecture
 
