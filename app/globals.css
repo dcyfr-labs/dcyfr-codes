@@ -21,6 +21,20 @@
 @import "./dcyfr-theme-engine.css";
 @import "./dcyfr-theme-slate.css";
 
+/*
+ * The utility classes the v2 chrome block uses and does not define
+ * (`touch-target`, `transition-base`, `transition-fast`, plus the bare
+ * `site-header` / `site-footer` hooks), shipped as its own registry item so
+ * seven sites do not each carry a hand-copied twelve lines:
+ *
+ *   npx shadcn@latest add @dcyfr-labs/dcyfr-chrome-v2
+ *
+ * The item is a `registry:style` — it writes the file and nothing else, so the
+ * import is the only thing wiring it in. Without this line the classes never
+ * load and the header's tap targets silently collapse.
+ */
+@import "./dcyfr-chrome.css";
+
 @source "../app";
 @source "../components";
 
@@ -68,10 +82,12 @@
    * --accent splits in two under the contract.
    *
    * `accent` is a SURFACE TINT in both schemes (light: near-white; dark: the
-   * same near-background slate as --secondary). That is what the twenty-two
-   * `hover:bg-accent` / `focus:bg-accent` / `*:text-accent-foreground` pairs
-   * in button, dropdown-menu, tabs, command-palette and nav have always
-   * meant, so all twenty-two stay correct untouched.
+   * same near-background slate as --secondary). That is what every
+   * `hover:bg-accent` / `focus:bg-accent` / `*:text-accent-foreground` pair
+   * has always meant, so all of them stay correct untouched. The chrome-v2
+   * cutover moved which files hold them: dropdown-menu and site-nav are gone,
+   * site-header, mobile-nav and bottom-nav arrived, and button, dcyfr-badge
+   * and command-palette are unchanged.
    *
    * Brand meaning moves to the accent-400..700 ramp. Thirteen call sites need
    * it: the wordmark's `.codes` suffix, the language tags on snippet cards and
@@ -113,9 +129,12 @@
    * 0.25rem. No rounded-pill call sites, so that one is left unmapped.
    *
    * These lines are load-bearing rather than decorative: the deleted v3 config
-   * overrode borderRadius.lg/md/sm, so the twenty-six `rounded-lg`,
-   * `rounded-md` and `rounded-sm` call sites resolve through here rather than
-   * v4's stock scale.
+   * overrode borderRadius.lg/md/sm, so every `rounded-lg`, `rounded-md` and
+   * `rounded-sm` call site resolves through here rather than v4's stock scale.
+   * The chrome-v2 cutover shrank that set — dropdown-menu, site-nav and the v1
+   * footer carried nine between them, and the v2 header and drawer bring three
+   * back — so the counts quoted below describe the tree as it stood before the
+   * cutover, not as it stands now.
    *
    * Unlike every earlier site in this migration, the values MOVE. This site's
    * identity set --radius: 0.125rem and slate sets 0.5rem, so those twenty-six
@@ -135,7 +154,7 @@
    * baselines predate PR #37 and render sans, so the re-baseline also cashes
    * in this site's mono identity finally applying.
    *
-   * The four bare `rounded` call sites are untouched by all of this: v4 leaves
+   * The bare `rounded` call sites are untouched by all of this: v4 leaves
    * `rounded` on its own stock .25rem and the v3 config never overrode it.
    */
   --radius-lg: var(--radius);
@@ -143,14 +162,29 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   /*
-   * No font mapping. `font-sans` has zero call sites here, and --font-mono is
-   * deliberately NOT bridged: the contract declares it as a raw variable in
-   * @layer base, which outranks v4's @layer theme default, so the ten
-   * `font-mono` call sites already resolve to the theme's stack and agree with
-   * the engine's code/kbd/samp/pre binding for free. Bridging it would also
-   * reintroduce the self-referential key the previous commit had to reason
-   * about; not needing it at all is better than proving it safe.
+   * The fleet's line here is `--font-sans: var(--font-geist-sans)`. This site
+   * points the same key at Geist MONO instead, because adoption Decision 3
+   * gives it one face for display, body and code, and app/layout.tsx therefore
+   * loads only that one. Pointing --font-sans at a face this site does not
+   * load would leave the utility resolving to nothing, and pointing it at
+   * Geist Sans would mean loading a second 69,652-byte face to satisfy a
+   * utility with zero call sites.
+   *
+   * `font-sans` still has zero call sites, so this line is documentation more
+   * than plumbing: it says what the utility would mean if someone reached for
+   * it, and what it means is the same face as everything else on the page.
+   *
+   * --font-mono is deliberately NOT bridged, and Geist arriving does not
+   * change that. The contract declares it as a raw variable in @layer base,
+   * which outranks v4's @layer theme default, so the ten `font-mono` call
+   * sites already resolve to the theme's stack and agree with the engine's
+   * code/kbd/samp/pre binding for free. The --font-mono-loaded hook below is
+   * what swaps that stack's first entry to Geist Mono, so the utility follows
+   * without a bridge. Bridging it would also reintroduce the self-referential
+   * key an earlier commit had to reason about; not needing it at all is better
+   * than proving it safe.
    */
+  --font-sans: var(--font-geist-mono);
 }
 
 /*
@@ -183,33 +217,40 @@
 @layer base {
   :root {
     /*
-     * dcyfr.codes keeps its mono type identity through the de-brand.
+     * dcyfr.codes keeps its mono type identity through the de-brand, and this
+     * commit gives it a real face to keep it in.
      *
-     * This is the one place the site diverges from the fleet, and it is a
-     * deliberate call worth stating plainly. Every other site in this wave
-     * de-branded onto slate with no type consequence, because their identity
-     * blocks were chromatic. This one's was typographic: `.theme-dcyfr-codes`
-     * set BOTH --font-sans and --font-mono to the same ui-monospace stack, so
-     * emptying it would move body copy AND every heading from mono to sans.
+     * The engine binds body, headings and code to --font-body, --font-display
+     * and --font-mono, and the theme defines each as
+     * var(--font-<role>-loaded, <system stack>). A site supplies real faces by
+     * filling the -loaded hook; leaving one unset is how it opts into the
+     * system fallback. All three are filled now, and all three name the same
+     * face.
      *
-     * That is a product change, not a de-brand. The site is a code-snippet
-     * library whose whole reading surface is code; the mono face is content-
-     * appropriate rather than decorative. So the values move to the engine's
-     * -loaded hooks, which exist precisely so a site supplies its own faces —
-     * the same channel dcyfr.work uses to keep Inter. Colors and radius still
-     * pin to canonical slate, which is what Decision 1 is actually about.
+     * That single face is adoption Decision 3, which applies at this site and
+     * nowhere else in the wave. Every other site pairs Geist Sans for display
+     * and body with Geist Mono for code. This one is a code-snippet library
+     * whose whole reading surface is code, so the mono face is content-
+     * appropriate rather than decorative, and splitting it would move body
+     * copy and every heading to sans. Colors and radius still pin to canonical
+     * slate, which is what Decision 1 is actually about.
      *
-     * These are system stacks, not webfonts, per Decision 4. To take the full
-     * fleet-uniform sans instead, delete these two lines: nothing else in the
-     * site depends on them.
+     * The hooks used to hold a literal ui-monospace stack with a note citing
+     * adoption Decision 4, which said no site downloads a webfont. That is no
+     * longer what happens here. geist is self-hosted through next/font/local,
+     * so the woff2 ships inside the package and Next serves it from this
+     * origin: still no build-time fetch and no third-party runtime request,
+     * but a real download of a real face. The system stack survives underneath
+     * as geist/font/mono's own fallback list, which is what paints before the
+     * face lands.
      *
-     * --font-mono-loaded is left unset on purpose. The theme's own mono stack
-     * differs from the one the identity block spelled only in preferring
-     * "SF Mono" over SFMono-Regular, which resolve to the same face on macOS,
-     * so there is nothing to preserve.
+     * To take the fleet-uniform sans-plus-mono pairing instead, point
+     * --font-display-loaded and --font-body-loaded at --font-geist-sans:
+     * nothing else in the site depends on these three lines.
      */
-    --font-display-loaded: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-    --font-body-loaded: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-display-loaded: var(--font-geist-mono);
+    --font-body-loaded: var(--font-geist-mono);
+    --font-mono-loaded: var(--font-geist-mono);
   }
 
   /*
@@ -251,12 +292,16 @@
  * theme ships the same cubic-bezier(0.22, 1, 0.36, 1) curve as --motion-snap
  * and --motion-ease.
  *
- * Ground colors are not set here either. PageShell paints
- * `bg-background text-foreground` on a `min-h-screen` wrapper, which is where
- * this site has always got them, and font-family is deliberately absent: the
- * engine owns it on <body> via --font-body, and an unlayered declaration in
- * this file would beat anything in @layer base regardless of source order,
- * leaving the engine's type binding dead while looking correct in the source.
+ * Ground colors are not set here either. They used to ride PageShell's
+ * `min-h-screen` wrapper; chrome v2 ships no such wrapper, so `bg-background
+ * text-foreground` moved onto <body> in app/layout.tsx beside the flex
+ * classes. That keeps them one hop from the element that owns the viewport,
+ * which is what the deleted wrapper was doing.
+ *
+ * font-family stays absent from this file whatever happens to the grounds: the
+ * engine owns it on <body> via --font-body, and an unlayered declaration here
+ * would beat anything in @layer base regardless of source order, leaving the
+ * engine's type binding dead while looking correct in the source.
  */
 
 @layer base {

@@ -1,0 +1,31 @@
+@layer base {
+  /*
+   * Requires --motion-snap from a dcyfr-theme-* package and a
+   * data-identity stamp on <html>. Source, and why the two other class
+   * names the chrome components use carry no rules:
+   * @dcyfr-labs/dcyfr-chrome-utilities in dcyfr-labs/dcyfr-labs-registry.
+   */
+
+  /*
+   * Matches the flagship's own definition (src/app/globals.css), where this
+   * cohort was upstreamed from and where its hit areas were sized. Base
+   * layer, so a Tailwind utility on the same element still wins — that is
+   * the flagship's behavior, not an oversight.
+   */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@layer components {
+  .transition-base,
+  .transition-fast {
+    transition:
+      transform var(--motion-snap),
+      opacity var(--motion-snap);
+  }
+}
