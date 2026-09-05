@@ -1,0 +1,161 @@
+'use client';
+
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { MenuIcon } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { ThemeToggle, type ThemeName } from './theme-toggle';
+import { cn } from '@/lib/utils';
+import { isNavItemActive, getAriaCurrent, type ChromeNavSection } from './nav-utils';
+
+/**
+ * Mobile navigation component with hamburger menu
+ *
+ * Features:
+ * - Sheet drawer with large touch targets (56px height)
+ * - Sectioned navigation for better organization
+ * - Auto-closes on navigation
+ * - Shows active page indicator
+ * - Includes theme toggle
+ * - Full accessibility support
+ *
+ * @example
+ * ```tsx
+ * <MobileNav sections={NAVIGATION.mobile} />
+ * ```
+ */
+export interface MobileNavProps {
+  /** Sectioned navigation rendered in the drawer */
+  sections: ChromeNavSection[];
+  /** Drawer title */
+  title?: string;
+  /** Optional callback fired after the theme changes (e.g. analytics) */
+  onThemeChange?: (theme: ThemeName) => void;
+}
+
+export function MobileNav({ sections, title = 'Navigation', onThemeChange }: MobileNavProps) {
+  const [open, setOpen] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+  const pathname = usePathname();
+
+  // Prevent hydration mismatch by only rendering after mount
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Close sheet when navigating
+  React.useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Render button immediately but defer Sheet portal rendering until mounted
+  // This avoids Radix ID mismatches while keeping the trigger interactive
+  if (!mounted) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="touch-target"
+        aria-label="Open navigation menu"
+        onClick={() => {}} // No-op until mounted
+      >
+        <MenuIcon className="h-4 w-4" />
+      </Button>
+    );
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="touch-target"
+          aria-label="Open navigation menu"
+        >
+          <MenuIcon className="h-4 w-4" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-70 sm:w-[320px] p-4 overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="text-left">{title}</SheetTitle>
+        </SheetHeader>
+
+        {/* Sectioned Navigation */}
+        <div className={cn('mt-6', 'space-y-5 md:space-y-6 lg:space-y-8')}>
+          {sections.map((section) => (
+            <section key={section.id} className="mb-8 last:mb-0">
+              {/* Section Heading */}
+              <h3
+                className={cn(
+                  'text-sm font-semibold',
+                  'text-muted-foreground uppercase tracking-wide px-4 mb-2'
+                )}
+              >
+                {section.label}
+              </h3>
+
+              {/* Section Items */}
+              <nav
+                aria-label={section.description || section.label}
+                className="flex flex-col gap-1"
+              >
+                {section.items.map((item) => {
+                  const isActive = isNavItemActive(item, pathname);
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        'flex items-center gap-3 h-14 px-4 rounded-lg text-base',
+                        'transition-base',
+                        'hover:bg-accent hover:text-accent-foreground',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                        isActive && 'bg-accent text-accent-foreground font-medium'
+                      )}
+                      aria-current={getAriaCurrent(item.href, pathname, item.exactMatch)}
+                      aria-label={item.description}
+                      prefetch={item.prefetch ?? false}
+                    >
+                      {Icon && (
+                        <Icon
+                          className={cn('h-5 w-5 shrink-0', isActive && 'stroke-[2.5]')}
+                          aria-hidden="true"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="truncate">{item.label}</div>
+                        {item.description && (
+                          <div
+                            className={cn('text-sm text-muted-foreground', 'text-muted-foreground truncate')}
+                          >
+                            {item.description}
+                          </div>
+                        )}
+                      </div>
+                      {item.badge && (
+                        <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </section>
+          ))}
+        </div>
+
+        {/* Footer Actions */}
+        <div className="border-t py-4 flex items-center justify-between w-full mx-auto">
+          <span className="text-sm font-semibold">Theme</span>
+          <ThemeToggle onThemeChange={onThemeChange} />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}

@@ -14,7 +14,7 @@ Searchable code patterns and recipes for the DCYFR ecosystem, live at **[dcyfr.c
 
 - Next.js 15 (App Router) / React 19 / Tailwind CSS
 - cmdk-powered search
-- shadcn primitives from the `@dcyfr-labs` registry (`registry.dcyfr.ai`); shared chrome in [`components/chrome/`](components/chrome/README.md)
+- shadcn primitives from the `@dcyfr-labs` registry (`registry.dcyfr.ai`); shared chrome in `components/chrome/`, installed as the registry's `dcyfr-chrome-v2` block and updated by re-running the add command rather than by editing the files
 - Sentry instrumentation (client, server, and edge configs)
 - Playwright for e2e and visual-regression snapshots ([`e2e/`](e2e/README.md))
 
@@ -71,5 +71,4 @@ Deployed on Vercel from `main`, with hardened security headers via `vercel.json`
 ## Further docs
 
 - [`AGENTS.md`](AGENTS.md) — agent conventions and project structure
-- [`components/chrome/README.md`](components/chrome/README.md) — shared chrome primitives
 - [`e2e/README.md`](e2e/README.md) — test suite notes
