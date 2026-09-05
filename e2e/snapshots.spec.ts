@@ -48,6 +48,12 @@ for (const route of ROUTES) {
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto(route.path, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(1500);
+      // The fixed wait above is a floor, not the gate. Geist Mono arrives as a
+      // self-hosted woff2 and swaps in whenever it lands, and every glyph on
+      // this site is set in it, so a capture taken between the fallback paint
+      // and the swap differs from one taken after by more than the tolerance.
+      // Wait on the face itself rather than on a longer timeout.
+      await page.evaluate(() => document.fonts.ready);
       await expect(page).toHaveScreenshot(`${route.name}-${vp.name}.png`, {
         fullPage: true,
         maxDiffPixelRatio: 0.05,

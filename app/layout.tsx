@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { GeistMono } from 'geist/font/mono';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from '@/components/chrome/theme-provider';
@@ -8,19 +9,39 @@ import type { ChromeNavSection } from '@/components/chrome/nav-utils';
 import { SiteCommandPalette } from '@/components/site-command-palette';
 import './globals.css';
 
-// No next/font import here on purpose. dcyfr.codes reads mono end to end, and
-// it gets there from system stacks: globals.css fills the theme engine's
-// --font-display-loaded / --font-body-loaded hooks with ui-monospace, and the
-// engine's own --font-mono covers code. Nothing is downloaded.
+// dcyfr.codes reads mono end to end, and as of this commit it gets there from
+// a real face rather than a system stack. globals.css points all three of the
+// theme engine's type hooks (--font-display-loaded, --font-body-loaded,
+// --font-mono-loaded) at --font-geist-mono, which is what adoption Decision 3
+// means at this site: Geist Mono only, headings and body included.
 //
-// The comment this replaces had the old failure backwards, and it is worth
-// stating correctly because the baselines encode it. It claimed the identity
+// Something IS downloaded now, which the comment this replaces denied. geist
+// is self-hosted through next/font/local, so there is no build-time fetch and
+// no third-party request at runtime: the woff2 ships inside the geist package
+// and Next serves it from this origin. Measured in node_modules,
+// GeistMono-Variable.woff2 is 71,368 bytes.
+//
+// Geist SANS is deliberately not imported, which is where this site parts from
+// the shared adoption recipe. Every other site in the wave binds both faces
+// because it renders both. Here Decision 3 puts Geist Mono on display, body
+// and code alike, so a GeistSans.variable on this element would render zero
+// glyphs while still emitting a <link rel="preload" as="font"> for
+// Geist-Variable.woff2 (69,652 bytes on disk) on every page. That was measured
+// by building with both imports and reading the preload tags out of
+// .next/server/app/*.html. Reversing it is two lines: import GeistSans, add
+// its .variable below, and point --font-sans at --font-geist-sans in
+// globals.css.
+//
+// The historical note is still worth keeping, because the baselines encode it.
+// The pre-#37 comment had the old failure backwards: it claimed the identity
 // block beat next/font and that Inter "resolved to zero elements". The
-// opposite was true: `Inter({ variable: '--font-sans' })` set --font-sans on
-// <html>, the same element carrying .theme-dcyfr-codes, and Inter won — so
-// the site shipped sans and the mono identity was the half reaching nothing.
-// PR #37 fixed it by deleting the Inter variable, but did not re-baseline, so
-// every committed PNG rendered sans until PR #43 regenerated them.
+// opposite was true. `Inter({ variable: '--font-sans' })` set --font-sans on
+// <html>, the same element carrying .theme-dcyfr-codes, and Inter won, so the
+// site shipped sans and the mono identity was the half reaching nothing. PR
+// #37 fixed it by deleting the Inter variable but did not re-baseline, so
+// every committed PNG rendered sans until PR #43 regenerated them. No Inter
+// loader and no --font-sans binding survived to this branch, so there was
+// nothing here for this commit to remove.
 
 export const metadata: Metadata = {
   title: {
@@ -116,7 +137,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="en"
       suppressHydrationWarning
       data-identity="slate"
-      className="theme-dcyfr-codes"
+      className={`theme-dcyfr-codes ${GeistMono.variable}`}
     >
       {/* The ground colors move here from the deleted PageShell wrapper, which
           painted them on its own min-h-screen box. globals.css sets no body

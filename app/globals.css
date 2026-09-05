@@ -162,14 +162,29 @@
   --radius-sm: calc(var(--radius) - 4px);
 
   /*
-   * No font mapping. `font-sans` has zero call sites here, and --font-mono is
-   * deliberately NOT bridged: the contract declares it as a raw variable in
-   * @layer base, which outranks v4's @layer theme default, so the ten
-   * `font-mono` call sites already resolve to the theme's stack and agree with
-   * the engine's code/kbd/samp/pre binding for free. Bridging it would also
-   * reintroduce the self-referential key the previous commit had to reason
-   * about; not needing it at all is better than proving it safe.
+   * The fleet's line here is `--font-sans: var(--font-geist-sans)`. This site
+   * points the same key at Geist MONO instead, because adoption Decision 3
+   * gives it one face for display, body and code, and app/layout.tsx therefore
+   * loads only that one. Pointing --font-sans at a face this site does not
+   * load would leave the utility resolving to nothing, and pointing it at
+   * Geist Sans would mean loading a second 69,652-byte face to satisfy a
+   * utility with zero call sites.
+   *
+   * `font-sans` still has zero call sites, so this line is documentation more
+   * than plumbing: it says what the utility would mean if someone reached for
+   * it, and what it means is the same face as everything else on the page.
+   *
+   * --font-mono is deliberately NOT bridged, and Geist arriving does not
+   * change that. The contract declares it as a raw variable in @layer base,
+   * which outranks v4's @layer theme default, so the ten `font-mono` call
+   * sites already resolve to the theme's stack and agree with the engine's
+   * code/kbd/samp/pre binding for free. The --font-mono-loaded hook below is
+   * what swaps that stack's first entry to Geist Mono, so the utility follows
+   * without a bridge. Bridging it would also reintroduce the self-referential
+   * key an earlier commit had to reason about; not needing it at all is better
+   * than proving it safe.
    */
+  --font-sans: var(--font-geist-mono);
 }
 
 /*
@@ -202,33 +217,40 @@
 @layer base {
   :root {
     /*
-     * dcyfr.codes keeps its mono type identity through the de-brand.
+     * dcyfr.codes keeps its mono type identity through the de-brand, and this
+     * commit gives it a real face to keep it in.
      *
-     * This is the one place the site diverges from the fleet, and it is a
-     * deliberate call worth stating plainly. Every other site in this wave
-     * de-branded onto slate with no type consequence, because their identity
-     * blocks were chromatic. This one's was typographic: `.theme-dcyfr-codes`
-     * set BOTH --font-sans and --font-mono to the same ui-monospace stack, so
-     * emptying it would move body copy AND every heading from mono to sans.
+     * The engine binds body, headings and code to --font-body, --font-display
+     * and --font-mono, and the theme defines each as
+     * var(--font-<role>-loaded, <system stack>). A site supplies real faces by
+     * filling the -loaded hook; leaving one unset is how it opts into the
+     * system fallback. All three are filled now, and all three name the same
+     * face.
      *
-     * That is a product change, not a de-brand. The site is a code-snippet
-     * library whose whole reading surface is code; the mono face is content-
-     * appropriate rather than decorative. So the values move to the engine's
-     * -loaded hooks, which exist precisely so a site supplies its own faces —
-     * the same channel dcyfr.work uses to keep Inter. Colors and radius still
-     * pin to canonical slate, which is what Decision 1 is actually about.
+     * That single face is adoption Decision 3, which applies at this site and
+     * nowhere else in the wave. Every other site pairs Geist Sans for display
+     * and body with Geist Mono for code. This one is a code-snippet library
+     * whose whole reading surface is code, so the mono face is content-
+     * appropriate rather than decorative, and splitting it would move body
+     * copy and every heading to sans. Colors and radius still pin to canonical
+     * slate, which is what Decision 1 is actually about.
      *
-     * These are system stacks, not webfonts, per Decision 4. To take the full
-     * fleet-uniform sans instead, delete these two lines: nothing else in the
-     * site depends on them.
+     * The hooks used to hold a literal ui-monospace stack with a note citing
+     * adoption Decision 4, which said no site downloads a webfont. That is no
+     * longer what happens here. geist is self-hosted through next/font/local,
+     * so the woff2 ships inside the package and Next serves it from this
+     * origin: still no build-time fetch and no third-party runtime request,
+     * but a real download of a real face. The system stack survives underneath
+     * as geist/font/mono's own fallback list, which is what paints before the
+     * face lands.
      *
-     * --font-mono-loaded is left unset on purpose. The theme's own mono stack
-     * differs from the one the identity block spelled only in preferring
-     * "SF Mono" over SFMono-Regular, which resolve to the same face on macOS,
-     * so there is nothing to preserve.
+     * To take the fleet-uniform sans-plus-mono pairing instead, point
+     * --font-display-loaded and --font-body-loaded at --font-geist-sans:
+     * nothing else in the site depends on these three lines.
      */
-    --font-display-loaded: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-    --font-body-loaded: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-display-loaded: var(--font-geist-mono);
+    --font-body-loaded: var(--font-geist-mono);
+    --font-mono-loaded: var(--font-geist-mono);
   }
 
   /*
