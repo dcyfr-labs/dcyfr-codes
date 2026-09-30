@@ -41,6 +41,15 @@
     --destructive: hsl(0 74% 42%);
     --destructive-foreground: hsl(210 40% 98%);
 
+    /* Field (contract v3) — the secondary plate and its pair; accent is the
+     * ramp's text-on-light step */
+    --field: hsl(210 40% 96.1%);
+    --field-foreground: hsl(222.2 47.4% 11.2%);
+    --field-accent: hsl(224 76% 48%);
+
+    /* Sheen (contract v3) — none: the engine's sheen layer paints nothing */
+    --sheen: none;
+
     /* Type roles — site wires next/font via the -loaded hooks */
     --font-display: var(--font-display-loaded, ui-sans-serif, system-ui, sans-serif);
     --font-body: var(--font-body-loaded, ui-sans-serif, system-ui, sans-serif);
@@ -96,5 +105,14 @@
     --warning-foreground: hsl(43 30% 10%);
     --destructive: hsl(0 91% 65%);
     --destructive-foreground: hsl(0 30% 10%);
+
+    /* Field (contract v3) — the dark secondary plate and its pair; accent
+     * is the ramp's text-on-dark step */
+    --field: hsl(217.2 32.6% 17.5%);
+    --field-foreground: hsl(210 40% 98%);
+    --field-accent: hsl(213 94% 73%);
+
+    /* Sheen (contract v3) */
+    --sheen: none;
   }
 }

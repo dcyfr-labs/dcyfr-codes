@@ -1,8 +1,11 @@
 @layer base {
   /*
-   * One-frame swap suppression. The switcher (showcase surfaces only) adds
-   * .theme-swap to <html> for one frame around any data-identity or scheme
-   * change. Without it, stepped transitions strand mid-ramp colors on swap.
+   * One-frame swap suppression. The switcher (showcase surfaces only) and
+   * the flagship cut chooser add .theme-swap to <html> for one frame around
+   * any data-identity, data-cut or scheme change. Without it, stepped
+   * transitions strand mid-ramp colors on swap. The rule is attribute-blind
+   * on purpose: it suppresses every transition under the class, so a cut
+   * change needs nothing more than an identity change does.
    */
   .theme-swap *,
   .theme-swap *::before,
@@ -81,5 +84,119 @@
       fill var(--motion-ease),
       stroke var(--motion-ease),
       box-shadow var(--motion-ease);
+  }
+
+  /*
+   * Field + sheen (contract v3). --sheen is an image value (a gradient
+   * layer stack or none), never a fill, and these utilities are the only
+   * place it is drawn:
+   *
+   *   .field        paints the one dramatic field (--field ground,
+   *                 --field-foreground text) and shows the sheen as a static
+   *                 low-opacity layer. The only place sheen is visible at
+   *                 rest.
+   *   .sheen-hover  the sheen at opacity 0 at rest, snapping visible on
+   *                 :hover / :focus-visible / :focus-within. Opacity is the
+   *                 only transitioned property, so --motion-snap's stepped
+   *                 timing is safe here.
+   *   .sheen-scroll a modifier for either of the above: it paints nothing
+   *                 by itself. It widens the sheen layer and drifts it with
+   *                 the element's view() timeline, a pure CSS scroll-driven
+   *                 animation (never a scroll listener). Browsers without
+   *                 scroll timelines get the static, centred layer.
+   *
+   * The sheen draws on ::before: absolutely positioned at inset 0 inside a
+   * host that is position: relative and isolation: isolate, so z-index -1
+   * lands above the host background and below its content. The layer never
+   * takes pointer events, never paints outside the host's padding box, and
+   * follows its corner radius. --sheen: none paints nothing.
+   *
+   * Reduced motion removes animation, not information. Under
+   * prefers-reduced-motion: reduce every utility renders with no animation:
+   * .field keeps its static layer, .sheen-hover still reveals the sheen on
+   * hover and focus but instantly (no transition), and .sheen-scroll never
+   * attaches its timeline. Forced-colors mode drops the layer, since it is
+   * decoration.
+   *
+   * .sheen-hover reveals on :focus-within as well as :focus-visible, so a
+   * host whose child was focused by mouse keeps its sheen until focus
+   * leaves. That is intended: the sheen marks the active host, not the
+   * pointer.
+   */
+  .field {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--field);
+    color: var(--field-foreground);
+  }
+
+  .sheen-hover {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .field::before,
+  .sheen-hover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image: var(--sheen);
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-size: 100% 100%;
+    opacity: 0.2;
+  }
+
+  .sheen-hover::before {
+    opacity: 0;
+    transition: opacity var(--motion-snap);
+  }
+
+  .sheen-hover:hover::before,
+  .sheen-hover:focus-visible::before,
+  .sheen-hover:focus-within::before {
+    opacity: 0.2;
+  }
+
+  /* Twice the host width, so the layer has room to travel. */
+  .sheen-scroll::before {
+    background-size: 200% 100%;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .sheen-scroll::before {
+        animation: dcyfr-sheen-drift linear both;
+        /* after the shorthand, which resets the timeline to auto */
+        animation-timeline: view();
+      }
+    }
+  }
+
+  /* Reduced motion: the hover reveal still happens, just without the
+     transition. Never hide the sheen here. */
+  @media (prefers-reduced-motion: reduce) {
+    .sheen-hover::before {
+      transition: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .field::before,
+    .sheen-hover::before {
+      display: none;
+    }
+  }
+
+  @keyframes dcyfr-sheen-drift {
+    from {
+      background-position: 100% 50%;
+    }
+    to {
+      background-position: 0% 50%;
+    }
   }
 }
