@@ -27,6 +27,12 @@
     font-family: var(--font-display);
   }
 
+  /* Quotes take the display face, so an identity that sets serif in its
+     titles carries it into its pulled quotes as well. */
+  [data-identity] blockquote {
+    font-family: var(--font-display);
+  }
+
   /*
    * Mono is machine text. Ligatures are forced off structurally: a
    * ligature-happy mono renders `--accent` as `—accent`, which is fatal in a
