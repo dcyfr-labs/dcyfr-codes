@@ -173,7 +173,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <main id="main-content" className="flex-1 pt-18">
               {children}
             </main>
-            <SiteFooter brand="DCYFR" links={FOOTER} />
+            <SiteFooter brand="DCYFR Labs" links={FOOTER} />
           </SiteCommandPalette>
         </ThemeProvider>
         <Analytics />

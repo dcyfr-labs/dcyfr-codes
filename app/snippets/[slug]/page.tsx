@@ -76,7 +76,7 @@ export default async function SnippetPage({ params }: Readonly<Props>) {
             description: snippet.description,
             programmingLanguage: snippet.language,
             url: `https://dcyfr.codes/snippets/${snippet.slug}`,
-            publisher: { '@type': 'Organization', name: 'DCYFR', url: 'https://dcyfr.codes' },
+            publisher: { '@type': 'Organization', name: 'DCYFR Labs', url: 'https://dcyfr.codes' },
           }).replaceAll('<', String.raw`\u003c`),
         }}
       />
