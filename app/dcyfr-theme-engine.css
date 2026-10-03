@@ -99,12 +99,15 @@
    *
    *   .field        paints the one dramatic field (--field ground,
    *                 --field-foreground text) and shows the sheen as a static
-   *                 low-opacity layer. The only place sheen is visible at
-   *                 rest.
-   *   .sheen-hover  the sheen at opacity 0 at rest, snapping visible on
-   *                 :hover / :focus-visible / :focus-within. Opacity is the
-   *                 only transitioned property, so --motion-snap's stepped
-   *                 timing is safe here.
+   *                 low-opacity layer, at the theme's optional
+   *                 --field-sheen-opacity (0.2 when unset). The only place
+   *                 sheen is visible at rest.
+   *   .sheen-hover  the sheen at opacity 0 at rest, snapping visible (0.2)
+   *                 on :hover / :focus-visible / :focus-within. The layer
+   *                 is centred and sized by the theme's optional
+   *                 --sheen-hover-size (the host's box when unset). Opacity
+   *                 is the only transitioned property, so --motion-snap's
+   *                 stepped timing is safe here.
    *   .sheen-scroll a modifier for either of the above: it paints nothing
    *                 by itself. It widens the sheen layer and drifts it with
    *                 the element's view() timeline, a pure CSS scroll-driven
@@ -153,10 +156,23 @@
     background-repeat: no-repeat;
     background-position: 50% 50%;
     background-size: 100% 100%;
-    opacity: 0.2;
   }
 
+  /* A field's resting opacity is the theme's call, through the optional
+     --field-sheen-opacity token (theme-contract.json optional); 0.2 when a
+     theme leaves it unset. */
+  .field::before {
+    opacity: var(--field-sheen-opacity, 0.2);
+  }
+
+  /* The hover layer's size is the theme's call, through the optional
+     --sheen-hover-size token (theme-contract.json optional); the host's
+     own box (100% 100%) when a theme leaves it unset. Obsidian sets
+     200% 100%, the size .sheen-scroll gives a travelling layer, so a card
+     shows the middle of the composition a wide field shows rather than
+     squeezing a rim into a blob. */
   .sheen-hover::before {
+    background-size: var(--sheen-hover-size, 100% 100%);
     opacity: 0;
     transition: opacity var(--motion-snap);
   }
