@@ -2,6 +2,7 @@
   "name": "dcyfr-codes-snippets",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "dcyfr.codes — Searchable code patterns and recipes for the DCYFR ecosystem",
   "scripts": {
     "dev": "next dev --port 3303",
