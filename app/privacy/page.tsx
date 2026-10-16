@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: { url: 'https://dcyfr.codes/privacy' },
 };
 
-const LAST_UPDATED = 'August 31, 2026';
+const LAST_UPDATED = 'October 15, 2026';
 
 export default function PrivacyPage() {
   return (
@@ -74,6 +74,46 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold text-foreground">Your rights</h2>
           <p>If you are in the EEA, the UK, or a US state with a comprehensive privacy law, you can ask us for a copy of your data, ask us to correct or delete it, or object to processing.</p>
           <p>Write to <a href="https://dcyfr.ai/contact" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">DCYFR Labs ↗</a> and say which site you are asking about. We aim to reply within 30 days.</p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">US state privacy rights: California, Colorado and Maryland</h2>
+          <p>Some US states give their residents specific rights over personal information. DCYFR Labs may not meet the thresholds that make these laws apply to it, but we honour the rights below for anyone who asks, wherever they live.</p>
+          <h3 className="pt-2 font-semibold text-foreground">California (CCPA, as amended by the CPRA)</h3>
+          <p>If you live in California, you can:</p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li><span className="font-medium text-foreground">Know</span> what personal information we collect, use and disclose, and get a copy of it.</li>
+            <li><span className="font-medium text-foreground">Delete</span> personal information we hold about you.</li>
+            <li><span className="font-medium text-foreground">Correct</span> personal information that is inaccurate.</li>
+            <li><span className="font-medium text-foreground">Opt out of sale or sharing.</span> We do not sell personal information or share it for cross-context behavioural advertising, so there is nothing to opt out of. If your browser sends a Global Privacy Control signal, we treat it as an opt-out request anyway.</li>
+            <li><span className="font-medium text-foreground">Limit use of sensitive personal information.</span> We do not collect it.</li>
+            <li><span className="font-medium text-foreground">Not be treated differently</span> for using any of these rights.</li>
+          </ul>
+          <p>In the last 12 months we collected identifiers (the IP address and browser details our host records), internet activity (pages viewed, performance timings, error reports and masked session recordings) and approximate location (country). We collect it from you and from your browser, for the purposes described on this page, and keep it for the periods given under Processors. If you use “Copy to Gist”, the snippet you publish goes to GitHub and is public there.</p>
+          <p>You can use an authorised agent. We will ask the agent for proof that you authorised them, and we may ask you to confirm your identity with us directly.</p>
+          <h3 className="pt-2 font-semibold text-foreground">Colorado (Colorado Privacy Act)</h3>
+          <p>If you live in Colorado, you can:</p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li><span className="font-medium text-foreground">Confirm</span> whether we process your personal data, and get access to it.</li>
+            <li><span className="font-medium text-foreground">Correct</span> inaccuracies in it.</li>
+            <li><span className="font-medium text-foreground">Delete</span> it.</li>
+            <li><span className="font-medium text-foreground">Get a portable copy</span> of it, up to twice a year.</li>
+            <li><span className="font-medium text-foreground">Opt out</span> of targeted advertising, the sale of personal data, and profiling that leads to legal or similarly significant decisions. We do none of these. If your browser sends a Global Privacy Control signal, we treat it as an opt-out, and you can authorise someone else to opt out for you.</li>
+          </ul>
+          <h3 className="pt-2 font-semibold text-foreground">Maryland (Maryland Online Data Privacy Act)</h3>
+          <p>If you live in Maryland, you can:</p>
+          <ul className="list-disc space-y-2 pl-5">
+            <li><span className="font-medium text-foreground">Confirm</span> whether we process your personal data, and get access to it.</li>
+            <li><span className="font-medium text-foreground">Correct</span> inaccuracies in it.</li>
+            <li><span className="font-medium text-foreground">Delete</span> it.</li>
+            <li><span className="font-medium text-foreground">Get a portable copy</span> of data you gave us.</li>
+            <li><span className="font-medium text-foreground">Opt out</span> of targeted advertising, the sale of personal data, and profiling that leads to legal or similarly significant decisions. We do none of these.</li>
+            <li><span className="font-medium text-foreground">Get a list</span> of the categories of third parties we have disclosed personal data to. The services we use are listed under Processors above.</li>
+          </ul>
+          <p>We limit the personal data we collect to what is reasonably necessary to provide what you ask for, and we do not sell sensitive data.</p>
+          <h3 className="pt-2 font-semibold text-foreground">How to make a request</h3>
+          <p>Write to <a href="https://dcyfr.ai/contact" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-foreground">DCYFR Labs ↗</a> and say which site and which right you are asking about. We will confirm we received it within 10 business days, and we aim to answer within 30 days. The law allows 45. If we need more time, we will tell you why within the first 45 days and take no more than 45 more.</p>
+          <p><span className="font-medium text-foreground">Appeals.</span> If we decline your request, reply to our decision to appeal it. We will answer in writing within 60 days, or within 45 days if you live in Colorado. If we deny the appeal, we will tell you how to contact your state Attorney General: the Consumer Protection Division in Maryland, or the Colorado Attorney General.</p>
         </section>
 
         <section className="space-y-3">
