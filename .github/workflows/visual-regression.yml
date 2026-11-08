@@ -142,7 +142,9 @@ jobs:
     # `needs: guard` makes this skip on non-preview events (guard is skipped
     # there); when guard runs, honour its deps-only skip decision.
     if: needs.guard.outputs.skip != 'true'
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to 26.04 (2026-11), which Playwright 1.59 cannot
+    # install chromium deps on; the committed baselines were captured on 24.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       # Required for the diff-comment step to read + write PR comments.
