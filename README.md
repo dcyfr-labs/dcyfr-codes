@@ -6,8 +6,8 @@ Searchable code patterns and recipes for the DCYFR ecosystem, live at **[dcyfr.c
 
 ## Content pipeline
 
-- `extract-snippets.yml` runs the sync in CI, authenticating across orgs with GitHub App tokens.
-- `npm run export:snippets` (`scripts/extract-skills-snippets.mjs`) pulls snippets from workspace skills into the site's data.
+- `extract-snippets.yml` runs the sync in CI every Tuesday at 06:00 UTC (or on manual dispatch, which accepts a `dry_run` input), authenticating across orgs with GitHub App tokens. It lints the snippets and opens a PR on the `snippets-sync` branch for `data/snippets.json`.
+- `npm run export:snippets` (`scripts/extract-skills-snippets.mjs`) pulls snippets from workspace skills into the site's data. Run locally, pass the checkout location explicitly: `npm run export:snippets -- --workspace-root <path>`.
 - `npm run lint:snippets` (`scripts/lint-snippets.mjs`) validates the synced content.
 
 ## Stack
@@ -33,27 +33,36 @@ npm run dev        # http://localhost:3303
 | `npm run lint:snippets` | Validate synced snippet content |
 | `npm run export:snippets` | Re-run the skills → snippets extraction locally |
 | `npm run test:e2e` (`:ui`) | Playwright e2e suite |
-| `npm run test:snapshots` (`:update`) | Visual-regression snapshots (chromium) |
+| `npm run test:contrast` | Contrast spec (chromium) |
+| `npm run test:snapshots` (`:update`, `:rebaseline`) | Visual-regression snapshots (chromium) |
+| `npm run check:theme-wiring` | Verifies the theme files, the `globals.css` imports and the `data-identity` stamp |
 
 ## Routes
 
 - `/` — editorial homepage
 - `/snippets`, `/snippets/[slug]` — snippet library and detail pages
 - `/categories`, `/categories/[category]` — category browsing
-- `POST /api/gist` — create a GitHub gist from a snippet (requires `GITHUB_TOKEN`)
+- `POST /api/gist`: create a public GitHub gist from a snippet. The body is `{ "slug": "<snippet slug>" }`, resolved against `data/snippets.json` (deprecated snippets are excluded). The route returns 501 when `GITHUB_TOKEN` is unset, 403 unless the request's `Origin` or `Referer` is `dcyfr.codes`, `www.dcyfr.codes` or the request's own origin, and enforces 10 requests per hour per IP with an in-memory counter.
+- `/privacy`: privacy notice
+- `/robots.txt`, `/sitemap.xml`: generated from `app/robots.ts` and `app/sitemap.ts`
+- `/indexnow.txt`: IndexNow key file; the route returns 404 when `INDEXNOW_KEY` is unset
+- `/.well-known/security.txt`: RFC 9116 security contact
 
 ## Environment variables
 
 | Variable | Purpose |
 |---|---|
-| `GITHUB_TOKEN` | Runtime — `/api/gist` (needs gist scope); route degrades without it |
-| `SENTRY_ORG` / `SENTRY_PROJECT` | Build time — Sentry source-map upload |
+| `GITHUB_TOKEN` | Runtime: `/api/gist` (needs gist scope); the route returns 501 without it |
+| `NEXT_PUBLIC_SENTRY_DSN` | Client-side Sentry reporting |
+| `SENTRY_DSN` | Server and edge Sentry reporting; falls back to `NEXT_PUBLIC_SENTRY_DSN` |
+| `SENTRY_ORG` / `SENTRY_PROJECT` | Build time: Sentry source-map upload; default to `dcyfr-labs` / `dcyfr-codes` |
+| `INDEXNOW_KEY` | Served at `/indexnow.txt` for IndexNow |
 
 The content-pipeline auth in CI is handled by GitHub App tokens configured in `extract-snippets.yml`, not local env vars.
 
 ## Design-token & scaffold contract
 
-This site follows the `dcyfr-site-scaffold` contract: colors, spacing, radii, and typography resolve via CSS variables — no hardcoded design tokens. Local ESLint rules in `eslint-local-rules/` enforce this and the `design-tokens.yml` workflow gates every PR. From the workspace root, `npm run audit:sites` checks scaffold compliance across the site family.
+This site follows the `dcyfr-site-scaffold` contract: colors, spacing, radii, and typography resolve via CSS variables. Local ESLint rules in `eslint-local-rules/` enforce part of this: `no-hardcoded-colors`, `no-deprecated-design-tokens` and `no-legacy-dcyfr-palette` are errors, while `no-hardcoded-spacing` and `no-hardcoded-typography` are switched off in `eslint.config.mjs`. The `design-tokens.yml` workflow gates every PR. From the workspace root, `npm run audit:sites` checks scaffold compliance across the site family.
 
 ## CI
 
